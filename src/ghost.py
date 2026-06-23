@@ -16,13 +16,13 @@ class Ghost:
         self.is_edible = True
     def move(self, maze):
         directions = []
-        if not maze.is_wall(self.row - 1, self.col):
+        if maze.can_move(self.row, self.col, "up"):
             directions.append((-1, 0))
-        if not maze.is_wall(self.row + 1, self.col):
+        if maze.can_move(self.row, self.col, "down"):
             directions.append((1, 0))
-        if not maze.is_wall(self.row, self.col - 1):
+        if maze.can_move(self.row, self.col, "left"):
             directions.append((0, -1))
-        if not maze.is_wall(self.row, self.col + 1):
+        if maze.can_move(self.row, self.col, "right"):
             directions.append((0, 1))
         if directions:
             dr, dc = random.choice(directions)
