@@ -1,10 +1,11 @@
 import pygame
-
+import time
 
 class Pacgum:
     CELL_SIZE = 40
     YELLOW = (255, 255, 0)
     WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
     def __init__(self, row, col , is_super=False):
         self.row = row
         self.col = col

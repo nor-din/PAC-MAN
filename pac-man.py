@@ -1,12 +1,12 @@
-__pycache__/
-*.py[cod]
-*.pyo
-.mypy_cache/
-.pytest_cache/
-
-venv/
-env/
-.env
+import pygame
+from src.game import Game
 
 
-*.pyc
+pygame.init()
+
+screen = pygame.display.set_mode((800, 800))
+pygame.display.set_caption("PAC-MAN")
+g = Game(screen)
+g.run()
+
+pygame.quit()
