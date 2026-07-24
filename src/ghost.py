@@ -29,7 +29,7 @@ class Ghost:
             self.row += dr
             self.col += dc
     def draw(self, screen):
-        x = self.col * 40
-        y = self.row * 40
+        x = self.col * 40 + 100
+        y = self.row * 40 + 100
         screen.blit(self.current_img, (x, y))
     

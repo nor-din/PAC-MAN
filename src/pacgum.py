@@ -1,5 +1,4 @@
 import pygame
-import time
 
 class Pacgum:
     CELL_SIZE = 40
@@ -16,8 +15,8 @@ class Pacgum:
         self.is_eaten = True
     def draw(self, screen):
         if not self.is_eaten:
-            x = self.col * self.CELL_SIZE + self.CELL_SIZE // 2
-            y = self.row * self.CELL_SIZE + self.CELL_SIZE // 2
+            x = self.col * self.CELL_SIZE + self.CELL_SIZE // 2 + 100
+            y = self.row * self.CELL_SIZE + self.CELL_SIZE // 2 + 100
             if self.is_super:
                 pygame.draw.circle(screen, self.YELLOW, (x, y), 10)
             else:

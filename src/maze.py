@@ -40,8 +40,8 @@ class Maze:
         for row in range(self.rows):
             for col in range(self.cols):
                 cell = self.grid[row][col]
-                x = col * self.CELL_SIZE
-                y = row * self.CELL_SIZE
+                x = col * self.CELL_SIZE + 100
+                y = row * self.CELL_SIZE + 100
                 s = self.CELL_SIZE
 
                 if cell & 1:
