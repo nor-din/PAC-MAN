@@ -5,13 +5,15 @@ class Maze:
     """Maze class for MazeGenerator output."""
 
     CELL_SIZE = 40
-    BLUE = (0, 0, 255)
 
     def __init__(self, grid):
         """Initialize maze."""
         self.grid = grid
         self.rows = len(grid)
         self.cols = len(grid[0])
+        self.wallv_img = pygame.image.load("assets/images/wall_v.png")
+        self.wallh_img = pygame.image.load("assets/images/wall_h.png")
+        
 
     def is_blocked(self, row, col):
         """Check if cell is fully blocked."""
@@ -40,37 +42,20 @@ class Maze:
         for row in range(self.rows):
             for col in range(self.cols):
                 cell = self.grid[row][col]
-                x = col * self.CELL_SIZE + 100
-                y = row * self.CELL_SIZE + 100
-                s = self.CELL_SIZE
+                x = col * self.CELL_SIZE + 200
+                y = row * self.CELL_SIZE + 200
 
                 if cell & 1:
-                    pygame.draw.line(
-                        screen, self.BLUE,
-                        (x, y),
-                        (x + s, y), 2
-                    )
+                    screen.blit(self.wallh_img, (x, y))
 
                 if cell & 2:
-                    pygame.draw.line(
-                        screen, self.BLUE,
-                        (x + s, y),
-                        (x + s, y + s), 2
-                    )
+                    screen.blit(self.wallv_img, (x + self.CELL_SIZE - 4, y))
 
                 if cell & 4:
-                    pygame.draw.line(
-                        screen, self.BLUE,
-                        (x, y + s),
-                        (x + s, y + s), 2
-                    )
+                    screen.blit(self.wallh_img, (x, y + self.CELL_SIZE - 4))
 
                 if cell & 8:
-                    pygame.draw.line(
-                        screen, self.BLUE,
-                        (x, y),
-                        (x, y + s), 2
-                    )
+                    screen.blit(self.wallv_img, (x, y))
 
     def get_empty_cells(self):
         """Get all non-blocked cells."""

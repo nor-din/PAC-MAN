@@ -31,9 +31,34 @@ class Game:
         self._place_ghosts()
         self._place_pacgums()
         self.time_start = 0
-        self.time = 5
+        self.time = 90
         self.running = True
         self.run_game = True
+        self.img_dig = {}
+        self.socre_y = 875
+        self.time_y = 10
+        self.current_dir = None
+        self.img_title = pygame.image.load("assets/images/title.png")
+        self.img_title = pygame.transform.scale(self.img_title ,(550, 150))
+        self.img_start = pygame.image.load("assets/images/start.png")
+        self.img_start = pygame.transform.scale(self.img_start ,(400, 150))
+        self.img_start_hover = pygame.image.load("assets/images/start_hover.png")
+        self.img_start_hover = pygame.transform.scale(self.img_start_hover ,(400, 150))
+        self.img_highscore = pygame.image.load("assets/images/highscore.png")
+        self.img_highscore = pygame.transform.scale(self.img_highscore ,(400, 150))
+        self.img_highscore_hover = pygame.image.load("assets/images/highscore_hover.png")
+        self.img_highscore_hover = pygame.transform.scale(self.img_highscore_hover ,(400, 150))
+        self.img_instructions = pygame.image.load("assets/images/instructions.png")
+        self.img_instructions = pygame.transform.scale(self.img_instructions ,(400, 150))
+        self.img_instructions_hover = pygame.image.load("assets/images/instructions_hover.png")
+        self.img_instructions_hover = pygame.transform.scale(self.img_instructions_hover ,(400, 150))
+        self.img_exit = pygame.image.load("assets/images/exit.png")
+        self.img_exit = pygame.transform.scale(self.img_exit ,(400, 150))
+        self.img_exit_hover = pygame.image.load("assets/images/exit_hover.png")
+        self.img_exit_hover = pygame.transform.scale(self.img_exit_hover ,(400, 150))
+        for d in "0123456789":
+            self.img_dig[d] = pygame.image.load(f"/home/nodoulah/Music/PAC-MAN/assets/images/digit_{d}.png")
+            self.img_dig[d] = pygame.transform.scale(self.img_dig[d], (40, 40))
     def _place_pacgums(self):
         for row in range(self.maze.rows):
             for col in range(self.maze.cols):
@@ -60,13 +85,16 @@ class Game:
         BLACK = (0, 0 ,0)
         self.screen.fill(BLACK)
         self.maze.draw(self.screen)
-        font = pygame.font.Font(None, 36)
-        socre_live = font.render(f"Score: {self.player.score}", True, (255,255,255))
-        self.screen.blit(socre_live, (10, 770))
+        self.socre_x = 450
+        for d in str(self.player.score):
+            self.screen.blit(self.img_dig[d], (self.socre_x, self.socre_y))
+            self.socre_x += 50
         elapsed = (pygame.time.get_ticks() - self.time_start) // 1000
         time_sec = (self.time - elapsed)
-        time_live = font.render(f"Time left: {time_sec}", True, (255,255,255))
-        self.screen.blit(time_live, (350, 10))
+        self.time_x = 450
+        for d in str(time_sec):
+            self.screen.blit(self.img_dig[d], (self.time_x, self.time_y))
+            self.time_x += 50
         for p in self.pacgums:
             if (self.player.row == p.row and self.player.col == p.col):
                 self.pacgums.remove(p)
@@ -75,45 +103,63 @@ class Game:
             pacgum.draw(self.screen)
         for ghost in self.ghosts:
             if (ghost.row == self.player.row and ghost.col == self.player.col): 
-                print(self.player.lives)
                 self.player.row = self.middel_row
                 self.player.col = self.middel_col
+                self.current_dir = None
             ghost.draw(self.screen)
         self.player.draw(self.screen)
         if time_sec <= 0:
             self.game_over()
         pygame.display.update()
     def main_menu(self):
-        while self.running:
             BLACK = (0, 0 ,0)
             self.screen.fill(BLACK)
+            self.screen.blit(self.img_title, (250, 10))
+            rect_start = self.img_start.get_rect()
+            rect_start_hover = self.img_start_hover.get_rect()
+            rect_start.x = 330
+            rect_start.y = 200
+            rect_start_hover.x = 330
+            rect_start_hover.y = 200
+            self.screen.blit(self.img_start, rect_start)
+            if rect_start.collidepoint(pygame.mouse.get_pos()):
+                self.screen.blit(self.img_start_hover, rect_start_hover)
+            rect_highscore = self.img_highscore.get_rect()
+            rect_highscore_hover = self.img_highscore_hover.get_rect()
+            rect_highscore.x = 330
+            rect_highscore.y = 400
+            rect_highscore_hover.x = 330
+            rect_highscore_hover.y = 400
+            self.screen.blit(self.img_highscore, rect_highscore)
+            if rect_highscore.collidepoint(pygame.mouse.get_pos()):
+                self.screen.blit(self.img_highscore_hover, rect_highscore_hover)
+            rect_instructions = self.img_instructions.get_rect()
+            rect_instructions_hover = self.img_instructions_hover.get_rect()
+            rect_instructions.x = 330
+            rect_instructions.y = 600
+            rect_instructions_hover.x = 330
+            rect_instructions_hover.y = 600
+            self.screen.blit(self.img_instructions, rect_instructions)
+            if rect_instructions.collidepoint(pygame.mouse.get_pos()):
+                self.screen.blit(self.img_instructions_hover, rect_instructions_hover)
+            rect_exit = self.img_exit.get_rect()
+            rect_exit_hover = self.img_exit_hover.get_rect()
+            rect_exit.x = 330
+            rect_exit.y = 800
+            rect_exit_hover.x = 330
+            rect_exit_hover.y = 800
+            self.screen.blit(self.img_exit, rect_exit)
+            if rect_exit.collidepoint(pygame.mouse.get_pos()):
+                self.screen.blit(self.img_exit_hover, rect_exit_hover)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
-                    self.run_game = False
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if start_button.collidepoint(event.pos):
-                        self.time_start = pygame.time.get_ticks()
+                    if rect_start.collidepoint(event.pos):
                         self.game()
-                    if exit_button.collidepoint(event.pos):
-                        self.running = False
-                        self.run_game = False
-                        sys.exit(0)
-            font = pygame.font.Font(None, 70)
-            title = font.render(f"PAC MAN", True, (255,255,0))
-            start = font.render(f"START", True, (255,255,250))
-            highscores = font.render(f"HIGHSCORES", True, (255,255,250))
-            exit = font.render(f"EXIT", True, (255,255,250))
-            start_button = start.get_rect(center=(400, 200))
-            highscores_bottun = highscores.get_rect(center=(400, 300))
-            exit_button = exit.get_rect(center=(400,600))
-            self.screen.blit(title, (300, 20))
-            self.screen.blit(start, start_button)
-            self.screen.blit(highscores, highscores_bottun)
-            self.screen.blit(exit, exit_button)
             pygame.display.update()
     def game(self):
+        self.time_start = pygame.time.get_ticks()
         clock = pygame.time.Clock()
         while self.running:
             clock.tick(7)
@@ -123,13 +169,21 @@ class Game:
                     self.run_game = False
                     sys.exit(0)
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_UP]:
+            if keys[pygame.K_UP] and self.maze.can_move(self.player.row, self.player.col, "up"):
+                self.current_dir = "up" 
+            if keys[pygame.K_DOWN] and self.maze.can_move(self.player.row, self.player.col, "down"):
+                self.current_dir = "down"
+            if keys[pygame.K_LEFT] and self.maze.can_move(self.player.row, self.player.col, "left"):
+                self.current_dir = "left"
+            if keys[pygame.K_RIGHT] and self.maze.can_move(self.player.row, self.player.col, "right"):
+                self.current_dir = "right"
+            if self.current_dir == "up":
                 self.player.move_up(self.maze)
-            if keys[pygame.K_DOWN]:
+            if self.current_dir == "down":
                 self.player.move_down(self.maze)
-            if keys[pygame.K_LEFT]:
+            if self.current_dir == "left":
                 self.player.move_left(self.maze)
-            if keys[pygame.K_RIGHT]:
+            if self.current_dir == "right":
                 self.player.move_right(self.maze)
             for ghost in self.ghosts:
                 ghost.move(self.maze)

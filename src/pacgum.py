@@ -11,13 +11,15 @@ class Pacgum:
         self.is_super = is_super
         self.is_eaten = False
         self.points = 50 if is_super else 10
+        if is_super:
+            self.img = pygame.image.load("assets/images/super_pacgum.png")
+        else:
+            self.img = pygame.image.load("assets/images/pacgum.png")
+        self.img = pygame.transform.scale(self.img, (30, 30))
     def eat(self):
         self.is_eaten = True
     def draw(self, screen):
         if not self.is_eaten:
-            x = self.col * self.CELL_SIZE + self.CELL_SIZE // 2 + 100
-            y = self.row * self.CELL_SIZE + self.CELL_SIZE // 2 + 100
-            if self.is_super:
-                pygame.draw.circle(screen, self.YELLOW, (x, y), 10)
-            else:
-                pygame.draw.circle(screen, self.WHITE, (x, y), 5)
+            x = self.col * self.CELL_SIZE + 205
+            y = self.row * self.CELL_SIZE + 205
+            screen.blit(self.img, (x, y))

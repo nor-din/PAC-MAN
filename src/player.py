@@ -24,7 +24,7 @@ class Player:
         }
         self.current_img = self.images["right"]
     def move_right(self, maze):
-        if maze.can_move(self.row, self.col, "right"):  # ✅
+        if maze.can_move(self.row, self.col, "right"):
             self.col += 1
             self.direction = "right"
             self.current_img = self.images["right"]
@@ -53,7 +53,7 @@ class Player:
     def is_dead(self):
         return self.lives <= 0
     def draw(self, screen):
-        x = self.col * 40 + 100
-        y = self.row * 40 + 100
+        x = self.col * 40 + 200
+        y = self.row * 40 + 200
         screen.blit(self.current_img, (x, y))
 
