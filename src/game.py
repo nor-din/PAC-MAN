@@ -33,7 +33,9 @@ class Game:
         self.time_start = 0
         self.time = 90
         self.running = True
+        self.run_menu = True
         self.run_game = True
+        self.run_game_over = True
         self.img_dig = {}
         self.socre_y = 875
         self.time_y = 10
@@ -57,8 +59,17 @@ class Game:
         self.img_exit_hover = pygame.image.load("assets/images/exit_hover.png")
         self.img_exit_hover = pygame.transform.scale(self.img_exit_hover ,(400, 150))
         for d in "0123456789":
-            self.img_dig[d] = pygame.image.load(f"/home/nodoulah/Music/PAC-MAN/assets/images/digit_{d}.png")
+            self.img_dig[d] = pygame.image.load(f"assets/images/digit_{d}.png")
             self.img_dig[d] = pygame.transform.scale(self.img_dig[d], (40, 40))
+        self.img_heart = pygame.image.load("assets/images/heart.png")
+        self.img_heart = pygame.transform.scale(self.img_heart, (50, 50))
+        self.list_heart = [self.img_heart, self.img_heart, self.img_heart]
+        self.img_game_over = pygame.image.load("assets/images/game_over.png")
+        self.img_game_over = pygame.transform.scale(self.img_game_over ,(650, 400))
+        self.img_menu = pygame.image.load("assets/images/menu.png")
+        self.img_menu = pygame.transform.scale(self.img_menu, (400, 150))
+        self.img_pause = pygame.image.load("assets/images/pause.png")
+        self.img_pause = pygame.transform.scale(self.img_pause, (100, 100))
     def _place_pacgums(self):
         for row in range(self.maze.rows):
             for col in range(self.maze.cols):
@@ -81,8 +92,18 @@ class Game:
         row, col = self.corners[3]
         if not self.maze.is_blocked(row, col):
             self.ghosts.append(Ghost(row, col, "./assets/images/ghost_blue.png"))
+    def rest(self):
+        self.player = Player(self.middel_row, self.middel_col)
+        self.pacgums = []
+        self._place_pacgums()
+        self.ghosts = []
+        self._place_ghosts()
+        self.time_start = pygame.time.get_ticks()
+        self.current_dir = None
+        self.list_heart = [self.img_heart, self.img_heart, self.img_heart]
     def draw(self):
         BLACK = (0, 0 ,0)
+        i = 50
         self.screen.fill(BLACK)
         self.maze.draw(self.screen)
         self.socre_x = 450
@@ -90,7 +111,7 @@ class Game:
             self.screen.blit(self.img_dig[d], (self.socre_x, self.socre_y))
             self.socre_x += 50
         elapsed = (pygame.time.get_ticks() - self.time_start) // 1000
-        time_sec = (self.time - elapsed)
+        time_sec = max(0, (self.time - elapsed))
         self.time_x = 450
         for d in str(time_sec):
             self.screen.blit(self.img_dig[d], (self.time_x, self.time_y))
@@ -106,62 +127,76 @@ class Game:
                 self.player.row = self.middel_row
                 self.player.col = self.middel_col
                 self.current_dir = None
+                self.list_heart.pop()
+                self.player.lives -= 1
             ghost.draw(self.screen)
+        for img in self.list_heart:
+            self.screen.blit(img, (370 + i, 142))
+            i += 50
         self.player.draw(self.screen)
-        if time_sec <= 0:
+        if time_sec <= 0 or self.player.lives == 0:
+            self.run_game = False
+            self.run_game_over = True
             self.game_over()
+        self.screen.blit(self.img_pause, (5, 5))
         pygame.display.update()
     def main_menu(self):
-            BLACK = (0, 0 ,0)
-            self.screen.fill(BLACK)
-            self.screen.blit(self.img_title, (250, 10))
-            rect_start = self.img_start.get_rect()
-            rect_start_hover = self.img_start_hover.get_rect()
-            rect_start.x = 330
-            rect_start.y = 200
-            rect_start_hover.x = 330
-            rect_start_hover.y = 200
-            self.screen.blit(self.img_start, rect_start)
-            if rect_start.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.img_start_hover, rect_start_hover)
-            rect_highscore = self.img_highscore.get_rect()
-            rect_highscore_hover = self.img_highscore_hover.get_rect()
-            rect_highscore.x = 330
-            rect_highscore.y = 400
-            rect_highscore_hover.x = 330
-            rect_highscore_hover.y = 400
-            self.screen.blit(self.img_highscore, rect_highscore)
-            if rect_highscore.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.img_highscore_hover, rect_highscore_hover)
-            rect_instructions = self.img_instructions.get_rect()
-            rect_instructions_hover = self.img_instructions_hover.get_rect()
-            rect_instructions.x = 330
-            rect_instructions.y = 600
-            rect_instructions_hover.x = 330
-            rect_instructions_hover.y = 600
-            self.screen.blit(self.img_instructions, rect_instructions)
-            if rect_instructions.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.img_instructions_hover, rect_instructions_hover)
-            rect_exit = self.img_exit.get_rect()
-            rect_exit_hover = self.img_exit_hover.get_rect()
-            rect_exit.x = 330
-            rect_exit.y = 800
-            rect_exit_hover.x = 330
-            rect_exit_hover.y = 800
-            self.screen.blit(self.img_exit, rect_exit)
-            if rect_exit.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.img_exit_hover, rect_exit_hover)
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit(0)
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if rect_start.collidepoint(event.pos):
-                        self.game()
-            pygame.display.update()
+            while self.run_menu:
+                BLACK = (0, 0 ,0)
+                self.screen.fill(BLACK)
+                self.screen.blit(self.img_title, (250, 10))
+                rect_start = self.img_start.get_rect()
+                rect_start_hover = self.img_start_hover.get_rect()
+                rect_start.x = 330
+                rect_start.y = 200
+                rect_start_hover.x = 330
+                rect_start_hover.y = 200
+                self.screen.blit(self.img_start, rect_start)
+                if rect_start.collidepoint(pygame.mouse.get_pos()):
+                    self.screen.blit(self.img_start_hover, rect_start_hover)
+                rect_highscore = self.img_highscore.get_rect()
+                rect_highscore_hover = self.img_highscore_hover.get_rect()
+                rect_highscore.x = 330
+                rect_highscore.y = 400
+                rect_highscore_hover.x = 330
+                rect_highscore_hover.y = 400
+                self.screen.blit(self.img_highscore, rect_highscore)
+                if rect_highscore.collidepoint(pygame.mouse.get_pos()):
+                    self.screen.blit(self.img_highscore_hover, rect_highscore_hover)
+                rect_instructions = self.img_instructions.get_rect()
+                rect_instructions_hover = self.img_instructions_hover.get_rect()
+                rect_instructions.x = 330
+                rect_instructions.y = 600
+                rect_instructions_hover.x = 330
+                rect_instructions_hover.y = 600
+                self.screen.blit(self.img_instructions, rect_instructions)
+                if rect_instructions.collidepoint(pygame.mouse.get_pos()):
+                    self.screen.blit(self.img_instructions_hover, rect_instructions_hover)
+                rect_exit = self.img_exit.get_rect()
+                rect_exit_hover = self.img_exit_hover.get_rect()
+                rect_exit.x = 330
+                rect_exit.y = 800
+                rect_exit_hover.x = 330
+                rect_exit_hover.y = 800
+                self.screen.blit(self.img_exit, rect_exit)
+                if rect_exit.collidepoint(pygame.mouse.get_pos()):
+                    self.screen.blit(self.img_exit_hover, rect_exit_hover)
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        sys.exit(0)
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        if rect_start.collidepoint(event.pos):
+                            self.run_menu = False
+                            self.run_game = True
+                            self.rest()
+                            self.game()
+                        if rect_exit.collidepoint(event.pos):
+                            sys.exit(0)
+                pygame.display.update()
     def game(self):
         self.time_start = pygame.time.get_ticks()
         clock = pygame.time.Clock()
-        while self.running:
+        while self.run_game:
             clock.tick(7)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -189,27 +224,26 @@ class Game:
                 ghost.move(self.maze)
             self.draw()
     def game_over(self):
-        while self.running:
+        while self.run_game_over:
             BLACK = (0, 0 ,0)
             self.screen.fill(BLACK)
-            font = pygame.font.Font(None, 70)
-            over = font.render("Game Over", True, (255, 0,0))
-            menu = font.render("MENU", True, (255,255,250))
-            menu_button = menu.get_rect(center=(400, 600)) 
-            final_score = font.render(f"Score: {self.player.score}", True, (255,255,250))
-            self.screen.blit(over ,(300, 20))
-            self.screen.blit(final_score, (300, 300))
-            self.screen.blit(menu, menu_button)
+            self.screen.blit(self.img_game_over, (175, -90))
+            rect_menu = self.img_menu.get_rect()
+            rect_menu.x = 330
+            rect_menu.y = 600
+            self.screen.blit(self.img_menu, rect_menu)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                     self.run_game = False
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if menu_button.collidepoint(event.pos):
+                    if rect_menu.collidepoint(event.pos):
+                        self.run_game_over = False
+                        self.run_menu = True
                         self.main_menu()
             pygame.display.update()
     def run(self):
         
-        while self.run_game:
+        while self.running:
             self.main_menu()

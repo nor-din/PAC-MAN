@@ -8,44 +8,27 @@ class Player:
         self.lives = 3
         self.score = 0
         self.direction = "right"
-        self.images = {
-            "right": pygame.transform.scale(
-                pygame.image.load(
-                    "./assets/images/pacman_right.png"), (40, 40)),
-            "left": pygame.transform.scale(
-                pygame.image.load(
-                    "./assets/images/pacman_left.png"), (40, 40)),
-            "up": pygame.transform.scale(
-                pygame.image.load(
-                    "./assets/images/pacman_up.png"), (40, 40)),
-            "down": pygame.transform.scale(
-                pygame.image.load(
-                    "./assets/images/pacman_down.png"), (40, 40)),
-        }
-        self.current_img = self.images["right"]
+        self.counter = 0
+        self.index = 0
     def move_right(self, maze):
         if maze.can_move(self.row, self.col, "right"):
             self.col += 1
             self.direction = "right"
-            self.current_img = self.images["right"]
     
     def move_left(self, maze):
         if maze.can_move(self.row, self.col, "left"):
             self.col -= 1
             self.direction = "left"
-            self.current_img = self.images["left"]
     
     def move_up(self, maze):
         if maze.can_move(self.row, self.col, "up"):
             self.row -= 1
             self.direction = "up"
-            self.current_img = self.images["up"]
     
     def move_down(self, maze):
         if maze.can_move(self.row, self.col, "down"):
             self.row += 1
             self.direction = "down"
-            self.current_img = self.images["down"]
     def lose_life(self):
         self.lives -= 1
     def eat_pacgum(self, points):
@@ -53,7 +36,15 @@ class Player:
     def is_dead(self):
         return self.lives <= 0
     def draw(self, screen):
+        anim_frames = [
+            pygame.transform.scale(pygame.image.load(f"assets/images/pac_man_open_{self.direction}.png"), (27, 27)),
+            pygame.transform.scale(pygame.image.load(f"assets/images/pac_man_close.png"), (27, 27))
+        ]
+        self.counter += 1
+        if self.counter >= 2:
+            self.counter = 0
+            self.index += 1
+        frame = anim_frames[self.index % len(anim_frames)]
         x = self.col * 40 + 200
         y = self.row * 40 + 200
-        screen.blit(self.current_img, (x, y))
-
+        screen.blit(frame, (x, y))

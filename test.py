@@ -1,12 +1,11 @@
-import pygame
-pygame.init()
+from pathlib import Path
+from PIL import Image
 
-
-surface = pygame.Surface((100, 100))
-surface.fill((0, 0, 0))
-font = pygame.font.Font(None, 50)
-text = font.render("START", True, (255, 255, 255))
-surface.blit(text, (0, 0))
-pygame.image.save(surface, f"assets/images/start.png")
-
-print("Digits created!")
+for png in Path("assets/images").rglob("*.png"):
+    try:
+        img = Image.open(png)
+        img.info.pop("icc_profile", None)
+        img.save(png)
+        print(f"Fixed: {png}")
+    except Exception as e:
+        print(f"Failed: {png} ({e})")
