@@ -10,6 +10,7 @@ class Player:
         self.direction = "right"
         self.counter = 0
         self.index = 0
+        self.invincible = False
     def move_right(self, maze):
         if maze.can_move(self.row, self.col, "right"):
             self.col += 1
@@ -37,14 +38,22 @@ class Player:
         return self.lives <= 0
     def draw(self, screen):
         anim_frames = [
-            pygame.transform.scale(pygame.image.load(f"assets/images/pac_man_open_{self.direction}.png"), (27, 27)),
-            pygame.transform.scale(pygame.image.load(f"assets/images/pac_man_close.png"), (27, 27))
+            pygame.transform.scale(pygame.image.load(f"assets/images/pac_man_open_{self.direction}.png"), (36, 36)),
+            pygame.transform.scale(pygame.image.load("assets/images/pac_man_close.png"), (36, 36))
+        ]
+        inv_frames = [
+            pygame.transform.scale(pygame.image.load(f"assets/images/pac_man_open_{self.direction}_invincible.png"), (36, 36)),
+            pygame.transform.scale(pygame.image.load("assets/images/pac_man_close_invincible.png"), (36, 36))
         ]
         self.counter += 1
-        if self.counter >= 2:
+        if self.counter >= 7:
             self.counter = 0
             self.index += 1
-        frame = anim_frames[self.index % len(anim_frames)]
-        x = self.col * 40 + 200
-        y = self.row * 40 + 200
+        
+        if self.invincible:
+            frame = inv_frames[self.index % len(inv_frames)]
+        if not self.invincible:
+            frame = anim_frames[self.index % len(anim_frames)]
+        x = self.col * 40 + 202
+        y = self.row * 40 + 202
         screen.blit(frame, (x, y))

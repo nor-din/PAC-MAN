@@ -20,6 +20,6 @@ class Pacgum:
         self.is_eaten = True
     def draw(self, screen):
         if not self.is_eaten:
-            x = self.col * self.CELL_SIZE + 205
-            y = self.row * self.CELL_SIZE + 205
+            x = self.col * self.CELL_SIZE + 200 + (self.CELL_SIZE - 30) // 2
+            y = self.row * self.CELL_SIZE + 200 + (self.CELL_SIZE - 30) // 2
             screen.blit(self.img, (x, y))

@@ -5,14 +5,17 @@ class Maze:
     """Maze class for MazeGenerator output."""
 
     CELL_SIZE = 40
+    OFFSET = 200
 
     def __init__(self, grid):
         """Initialize maze."""
         self.grid = grid
         self.rows = len(grid)
         self.cols = len(grid[0])
-        self.wallv_img = pygame.image.load("assets/images/wall_v.png")
-        self.wallh_img = pygame.image.load("assets/images/wall_h.png")
+        self.wallv_img = pygame.transform.scale(
+            pygame.image.load("assets/images/wall_v.png"), (4, 40))
+        self.wallh_img = pygame.transform.scale(
+            pygame.image.load("assets/images/wall_h.png"), (40, 4))
         
 
     def is_blocked(self, row, col):
