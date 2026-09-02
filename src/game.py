@@ -309,7 +309,7 @@ class Game:
                 self.current_dir = "right"
             self.step_ghost += 1
             self.step_player += self.move_player
-            if self.step_player % 4 == 0:
+            if self.step_player % 8 == 0:
                 if self.current_dir == "up":
                     self.player.move_up(self.maze)
                 if self.current_dir == "down":
@@ -318,7 +318,7 @@ class Game:
                     self.player.move_left(self.maze)
                 if self.current_dir == "right":
                     self.player.move_right(self.maze)
-            if self.step_ghost % 4 == 0:
+            if self.step_ghost % 16 == 0:
                 if not self.cheat.frezz:
                     for ghost in self.ghosts:
                         ghost.move(self.maze)
