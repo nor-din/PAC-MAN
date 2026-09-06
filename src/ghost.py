@@ -17,12 +17,15 @@ class Ghost:
             pygame.image.load("assets/images/ghost_eatble.png"), (40, 40)
         )
         self.current_img = self.normal_img
+
     def make_edible(self):
         self.is_edible = True
+
     def respawn(self):
         self.row, self.col = self.home
         self.is_eaten = False
         self.is_edible = False
+
     def move(self, maze):
         directions = []
         if maze.can_move(self.row, self.col, "up"):
@@ -37,6 +40,7 @@ class Ghost:
             dr, dc = random.choice(directions)
             self.row += dr
             self.col += dc
+
     def draw(self, screen, edible=False):
         if self.is_eaten:
             return

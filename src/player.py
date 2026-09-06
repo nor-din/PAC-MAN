@@ -11,6 +11,7 @@ class Player:
         self.counter = 0
         self.index = 0
         self.invincible = False
+
     def move_right(self, maze):
         if maze.can_move(self.row, self.col, "right"):
             self.col += 1
@@ -30,12 +31,16 @@ class Player:
         if maze.can_move(self.row, self.col, "down"):
             self.row += 1
             self.direction = "down"
+
     def lose_life(self):
         self.lives -= 1
+
     def eat_pacgum(self, points):
         self.score += points
+
     def is_dead(self):
         return self.lives <= 0
+
     def draw(self, screen):
         anim_frames = [
             pygame.transform.scale(pygame.image.load(f"assets/images/pac_man_open_{self.direction}.png"), (36, 36)),
