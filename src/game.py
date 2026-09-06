@@ -56,7 +56,11 @@ class Images:
         self.img_invincible = pygame.transform.scale(self.img_invincible, (200, 50))
         self.img_speed = pygame.image.load("assets/images/speed.png")
         self.img_speed = pygame.transform.scale(self.img_speed, (250, 70))
-
+        self.img_instructions_title = pygame.image.load("assets/images/instructions_title.png")
+        self.img_instructions_title = pygame.transform.scale(self.img_instructions_title, (800, 200))
+        self.img_controls = pygame.image.load("assets/images/controls.png")
+        self.img_controls = pygame.transform.scale(self.img_controls, (700, 500))
+        
 class Cheat:
     def __init__(self):
         self.frezz = False
@@ -95,6 +99,7 @@ class Game:
         self.run_game = True
         self.run_game_over = True
         self.run_pause_menu = True
+        self.run_instruction = True
         self.socre_y = 910
         self.time_y = 10
         self.current_dir = None
@@ -263,8 +268,35 @@ class Game:
                         self.run_game = True
                         self.rest()
                         self.game()
+                    if rect_instructions.collidepoint(event.pos):
+                        self.run_menu = False
+                        self.run_instruction = True
+                        self.instructions()
                     if rect_exit.collidepoint(event.pos):
                         sys.exit(0)
+            pygame.display.update()
+    def instructions(self):
+        while self.run_instruction:
+            BLACK = (0, 0 ,0)
+            self.screen.fill(BLACK)
+            self.screen.blit(self.images.img_instructions_title, (100, 10))
+            self.screen.blit(self.images.img_controls, (150, 250))
+            self.screen.blit(self.images.img_menu, (250, 800))
+            rect_menu_hover = self.images.img_menu_hover.get_rect()
+            rect_menu_hover.x = 250
+            rect_menu_hover.y = 800
+            if rect_menu_hover.collidepoint(pygame.mouse.get_pos()):
+                self.screen.blit(self.images.img_menu_hover, rect_menu_hover)
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if rect_menu_hover.collidepoint(event.pos):
+                        self.run_instruction = False
+                        self.run_menu = True
+                        self.main_menu()
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    self.run_game = False
+                    sys.exit(0)
             pygame.display.update()
     def game(self):
         clock = pygame.time.Clock()
@@ -309,7 +341,7 @@ class Game:
                 self.current_dir = "right"
             self.step_ghost += 1
             self.step_player += self.move_player
-            if self.step_player % 8 == 0:
+            if self.step_player % 10 == 0:
                 if self.current_dir == "up":
                     self.player.move_up(self.maze)
                 if self.current_dir == "down":
@@ -318,7 +350,7 @@ class Game:
                     self.player.move_left(self.maze)
                 if self.current_dir == "right":
                     self.player.move_right(self.maze)
-            if self.step_ghost % 16 == 0:
+            if self.step_ghost % 20 == 0:
                 if not self.cheat.frezz:
                     for ghost in self.ghosts:
                         ghost.move(self.maze)
