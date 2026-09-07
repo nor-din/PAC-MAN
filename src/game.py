@@ -1,4 +1,5 @@
 import sys
+import json
 import pygame
 from mazegenerator import MazeGenerator
 from src.maze import Maze
@@ -336,29 +337,53 @@ class Game:
             pygame.display.update()
         self.time_start += pygame.time.get_ticks() - pause_start
     def game_over(self):
+        font = pygame.font.Font(None, 95)
+        empty = font.render("Enter user", True, (0, 0, 0))
+        text = ""
+        with open("highscore.json", "r") as f:
+            data = json.load(f)
         while self.run_game_over:
             BLACK = (0, 0 ,0)
             self.screen.fill(BLACK)
-            self.screen.blit(self.images.img_game_over, (175, 90))
-            rect_menu = self.images.img_menu.get_rect()
-            rect_menu.x = 250
-            rect_menu.y = 600
-            rect_menu_hover = self.images.img_menu_hover.get_rect()
-            rect_menu_hover.x = 250
-            rect_menu_hover.y = 600
-            self.screen.blit(self.images.img_menu, rect_menu)
-            if rect_menu_hover.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_menu_hover, rect_menu_hover)
+            self.screen.blit(self.images.img_game_over, (175, 20))
+            self.screen.blit(self.images.img_box, (250, 500))
+            rect_save = self.images.img_save.get_rect()
+            rect_save.x = 250
+            rect_save.y = 700
+            rect_save_hover = self.images.img_save_hover.get_rect()
+            rect_save_hover.x = 250
+            rect_save_hover.y = 700
+            self.screen.blit(self.images.img_save, rect_save)
+            text_ui = font.render(text, True, (0, 0, 0))
+            if rect_save_hover.collidepoint(pygame.mouse.get_pos()):
+                self.screen.blit(self.images.img_save_hover, rect_save_hover)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                     self.run_game = False
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if rect_menu.collidepoint(event.pos):
+                    if rect_save.collidepoint(event.pos) and len(text) > 0:
+                        if text in data:
+                            data[text] = max(data[text], self.player.score)
+                        else:
+                            data[text] = self.player.score
+                        with open("highscore.json", "w") as f:
+                            json.dump(data, f, indent=2)
                         self.run_game_over = False
                         self.run_menu = True
                         self.main_menu()
+                if event.type == pygame.TEXTINPUT:
+                    if len(text) < 10 and event.text.isalnum():
+                        text += event.text
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE:
+                        text = text[:-1]
+            text = text.lower()
+            if len(text) == 0:
+                self.screen.blit(empty, (300, 545))
+            if len(text) > 0:
+                self.screen.blit(text_ui, (300, 545))
             pygame.display.update()
     def run(self):
         
