@@ -1,28 +1,16 @@
-import pygame
+from src.constants import POINTS_PACGUM, POINTS_SUPER_PACGUM
 
 class Pacgum:
-    CELL_SIZE = 40
-    YELLOW = (255, 255, 0)
-    WHITE = (255, 255, 255)
-    BLACK = (0, 0, 0)
-
-    def __init__(self, row, col , is_super=False):
+    def __init__(self, row: int, col: int, is_super: bool = False):
         self.row = row
         self.col = col
         self.is_super = is_super
-        self.is_eaten = False
-        self.points = 50 if is_super else 10
-        if is_super:
-            self.img = pygame.image.load("assets/images/super_pacgum.png")
-        else:
-            self.img = pygame.image.load("assets/images/pacgum.png")
-        self.img = pygame.transform.scale(self.img, (30, 30))
+        self.points = POINTS_SUPER_PACGUM if is_super else POINTS_PACGUM
 
-    def eat(self):
-        self.is_eaten = True
-
-    def draw(self, screen):
-        if not self.is_eaten:
-            x = self.col * self.CELL_SIZE + 200 + (self.CELL_SIZE - 30) // 2
-            y = self.row * self.CELL_SIZE + 200 + (self.CELL_SIZE - 30) // 2
-            screen.blit(self.img, (x, y))
+    def draw(self, screen, assets, cell_size: int, offset_x: int, offset_y: int):
+        pacgum_size = int(cell_size * 0.5)
+        padding = (cell_size - pacgum_size) // 2
+        x = self.col * cell_size + offset_x + padding
+        y = self.row * cell_size + offset_y + padding
+        img = assets.pacgum["super"] if self.is_super else assets.pacgum["normal"]
+        screen.blit(img, (x, y))

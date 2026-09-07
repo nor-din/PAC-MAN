@@ -1,22 +1,15 @@
-import pygame
 import random
-
+from src.constants import LERP_FACTOR
 
 class Ghost:
-    def __init__(self, row, col, img_path):
+    def __init__(self, row: int, col: int, color: str):
         self.row = row
         self.col = col
         self.home = (row, col)
+        self.color = color
         self.is_edible = False
         self.is_eaten = False
         self.respawn_at = 0
-        self.normal_img = pygame.transform.scale(
-            pygame.image.load(img_path), (40, 40)
-        )
-        self.edible_img = pygame.transform.scale(
-            pygame.image.load("assets/images/ghost_eatble.png"), (40, 40)
-        )
-        self.current_img = self.normal_img
 
     def make_edible(self):
         self.is_edible = True
@@ -41,11 +34,19 @@ class Ghost:
             self.row += dr
             self.col += dc
 
-    def draw(self, screen, edible=False):
+    def draw(self, screen, assets, cell_size: int, offset_x: int, offset_y: int, edible: bool = False):
         if self.is_eaten:
             return
-        x = self.col * 40 + 200
-        y = self.row * 40 + 200
-        img = self.edible_img if edible else self.current_img
-        screen.blit(img, (x, y))
-    
+            
+        target_x = self.col * cell_size + offset_x
+        target_y = self.row * cell_size + offset_y
+        
+        if not hasattr(self, 'visual_x') or self.visual_x is None:
+            self.visual_x = target_x
+            self.visual_y = target_y
+            
+        self.visual_x += (target_x - self.visual_x) * LERP_FACTOR
+        self.visual_y += (target_y - self.visual_y) * LERP_FACTOR
+        
+        img = assets.ghosts["edible"] if edible else assets.ghosts[self.color]
+        screen.blit(img, (int(self.visual_x), int(self.visual_y)))
