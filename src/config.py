@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 
 def load_config(filepath: str) -> Dict[str, Any]:
@@ -43,7 +43,7 @@ def load_config(filepath: str) -> Dict[str, Any]:
             if key not in config:
                 config[key] = value
 
-        return config
+        return cast(Dict[str, Any], config)
 
     except Exception as e:
         print(f"Warning: Failed to parse '{filepath}' ({e}). Using defaults.")
