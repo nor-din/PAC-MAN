@@ -5,69 +5,10 @@ from src.maze import Maze
 from src.player import Player
 from src.pacgum import Pacgum
 from src.ghost import Ghost
+from src.ui import Images
+from src.cheat import Cheat
+from src.constants import STARTING_LIVES, DEFAULT_TIME_LIMIT, GHOST_POINTS, GHOST_RESPAWN_MS, SUPER_PACGUM_DURATION_MS, FPS, PLAYER_SPEED_TICKS, GHOST_SPEED_TICKS, PLAYER_DEFAULT_MOVE, PLAYER_CHEAT_MOVE
 
-class Images:
-    def __init__(self):
-        self.img_title = pygame.image.load("assets/images/title.png")
-        self.img_title = pygame.transform.scale(self.img_title ,(550, 150))
-        self.img_start = pygame.image.load("assets/images/start.png")
-        self.img_start = pygame.transform.scale(self.img_start ,(400, 150))
-        self.img_start_hover = pygame.image.load("assets/images/start_hover.png")
-        self.img_start_hover = pygame.transform.scale(self.img_start_hover ,(400, 150))
-        self.img_highscore = pygame.image.load("assets/images/highscore.png")
-        self.img_highscore = pygame.transform.scale(self.img_highscore ,(400, 150))
-        self.img_highscore_hover = pygame.image.load("assets/images/highscore_hover.png")
-        self.img_highscore_hover = pygame.transform.scale(self.img_highscore_hover ,(400, 150))
-        self.img_instructions = pygame.image.load("assets/images/instructions.png")
-        self.img_instructions = pygame.transform.scale(self.img_instructions ,(400, 150))
-        self.img_instructions_hover = pygame.image.load("assets/images/instructions_hover.png")
-        self.img_instructions_hover = pygame.transform.scale(self.img_instructions_hover ,(400, 150))
-        self.img_exit = pygame.image.load("assets/images/exit.png")
-        self.img_exit = pygame.transform.scale(self.img_exit ,(400, 150))
-        self.img_exit_hover = pygame.image.load("assets/images/exit_hover.png")
-        self.img_exit_hover = pygame.transform.scale(self.img_exit_hover ,(400, 150))
-        self.img_dig = {}
-        for d in "0123456789":
-            self.img_dig[d] = pygame.image.load(f"assets/images/digit_{d}.png")
-            self.img_dig[d] = pygame.transform.scale(self.img_dig[d], (40, 40))
-        self.img_heart = pygame.image.load("assets/images/heart.png")
-        self.img_heart = pygame.transform.scale(self.img_heart, (50, 50))
-        self.img_game_over = pygame.image.load("assets/images/game_over.png")
-        self.img_game_over = pygame.transform.scale(self.img_game_over ,(650, 400))
-        self.img_menu = pygame.image.load("assets/images/menu.png")
-        self.img_menu = pygame.transform.scale(self.img_menu, (500, 150))
-        self.img_menu_hover = pygame.image.load("assets/images/menu_hover.png")
-        self.img_menu_hover = pygame.transform.scale(self.img_menu_hover, (500, 150))
-        self.img_pause = pygame.image.load("assets/images/pause.png")
-        self.img_pause = pygame.transform.scale(self.img_pause, (100, 100))
-        self.img_pause_title = pygame.image.load("assets/images/pause_title.png")
-        self.img_pause_title = pygame.transform.scale(self.img_pause_title, (800, 400))
-        self.img_continue = pygame.image.load("assets/images/continue.png")
-        self.img_continue = pygame.transform.scale(self.img_continue, (500, 150))
-        self.img_continue_hover = pygame.image.load("assets/images/continue_hover.png")
-        self.img_continue_hover = pygame.transform.scale(self.img_continue_hover, (500, 150))
-        self.img_on = pygame.image.load("assets/images/on.png")
-        self.img_on = pygame.transform.scale(self.img_on, (100, 50))
-        self.img_off = pygame.image.load("assets/images/off.png")
-        self.img_off = pygame.transform.scale(self.img_off, (100, 50))
-        self.img_freeze = pygame.image.load("assets/images/freeze.png")
-        self.img_freeze = pygame.transform.scale(self.img_freeze, (250, 70))
-        self.img_invincible = pygame.image.load("assets/images/invincible.png")
-        self.img_invincible = pygame.transform.scale(self.img_invincible, (200, 50))
-        self.img_speed = pygame.image.load("assets/images/speed.png")
-        self.img_speed = pygame.transform.scale(self.img_speed, (250, 70))
-        self.img_instructions_title = pygame.image.load("assets/images/instructions_title.png")
-        self.img_instructions_title = pygame.transform.scale(self.img_instructions_title, (800, 200))
-        self.img_controls = pygame.image.load("assets/images/controls.png")
-        self.img_controls = pygame.transform.scale(self.img_controls, (700, 500))
-        self.img_box = pygame.image.load("assets/images/box.png")
-        self.img_box = pygame.transform.scale(self.img_box, (500, 150))
-        
-class Cheat:
-    def __init__(self):
-        self.frezz = False
-        self.invincible = False
-        self.speed = False
 
 class Game:
     def __init__(self, screen):
@@ -95,7 +36,7 @@ class Game:
         self._place_ghosts()
         self._place_pacgums()
         self.time_start = 0
-        self.time = 1
+        self.time = DEFAULT_TIME_LIMIT
         self.running = True
         self.run_menu = True
         self.run_game = True
@@ -107,10 +48,10 @@ class Game:
         self.current_dir = None
         self.step_ghost = 0
         self.step_player = 0
-        self.move_player = 1
+        self.move_player = PLAYER_DEFAULT_MOVE
         self.edible_until = 0
-        self.points_ghost = 200
-        self.respawn_ms = 8000
+        self.points_ghost = GHOST_POINTS
+        self.respawn_ms = GHOST_RESPAWN_MS
     def _place_pacgums(self):
         for row in range(self.maze.rows):
             for col in range(self.maze.cols):
@@ -142,7 +83,7 @@ class Game:
         self.time_start = pygame.time.get_ticks()
         self.current_dir = None
         self.step = 0
-        self.player.lives = 3
+        self.player.lives = STARTING_LIVES
         self.cheat.frezz = False
         self.cheat.invincible = False
         self.cheat.speed = False
@@ -171,7 +112,7 @@ class Game:
             self.pacgums.remove(p)
             self.player.score += p.points
             if p.is_super:
-                self.edible_until = pygame.time.get_ticks() + 7000
+                self.edible_until = pygame.time.get_ticks() + SUPER_PACGUM_DURATION_MS
         for pacgum in self.pacgums:
             pacgum.draw(self.screen)
         now = pygame.time.get_ticks()
@@ -188,8 +129,7 @@ class Game:
                     ghost.respawn_at = now + self.respawn_ms
                 else:
                     if not self.cheat.invincible:
-                        self.player.row = self.middel_row
-                        self.player.col = self.middel_col
+                        self.player.teleport(self.middel_row, self.middel_col)
                         self.current_dir = None
                         for ghost in self.ghosts:
                             ghost.respawn()
@@ -306,7 +246,7 @@ class Game:
         rect_pause.x = 5
         rect_pause.y = 5
         while self.run_game:
-            clock.tick(60)
+            clock.tick(FPS)
             keys = pygame.key.get_pressed()
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -329,10 +269,10 @@ class Game:
                         self.cheat.speed = not self.cheat.speed
                         if self.cheat.speed:
                             self.step_player = 0
-                            self.move_player = 2
+                            self.move_player = PLAYER_CHEAT_MOVE
                         else:
                             self.step_player = 0
-                            self.move_player = 1
+                            self.move_player = PLAYER_DEFAULT_MOVE
             if keys[pygame.K_UP] and self.maze.can_move(self.player.row, self.player.col, "up"):
                 self.current_dir = "up" 
             if keys[pygame.K_DOWN] and self.maze.can_move(self.player.row, self.player.col, "down"):
@@ -343,7 +283,7 @@ class Game:
                 self.current_dir = "right"
             self.step_ghost += 1
             self.step_player += self.move_player
-            if self.step_player % 10 == 0:
+            if self.step_player % PLAYER_SPEED_TICKS == 0:
                 if self.current_dir == "up":
                     self.player.move_up(self.maze)
                 if self.current_dir == "down":
@@ -352,10 +292,16 @@ class Game:
                     self.player.move_left(self.maze)
                 if self.current_dir == "right":
                     self.player.move_right(self.maze)
-            if self.step_ghost % 20 == 0:
+            if self.step_ghost % GHOST_SPEED_TICKS == 0:
                 if not self.cheat.frezz:
                     for ghost in self.ghosts:
                         ghost.move(self.maze)
+                        
+            if not self.cheat.frezz:
+                for ghost in self.ghosts:
+                    ghost.update_visual()
+            self.player.update_visual(self.move_player)
+            
             self.player.invincible = self.cheat.invincible
             self.draw()
     def pause_menu(self):
@@ -390,22 +336,17 @@ class Game:
             pygame.display.update()
         self.time_start += pygame.time.get_ticks() - pause_start
     def game_over(self):
-        font = pygame.font.Font(None, 95)
-        empty = font.render("Enter user", True, (0, 0, 0))
-        text = ""
         while self.run_game_over:
             BLACK = (0, 0 ,0)
             self.screen.fill(BLACK)
-            self.screen.blit(self.images.img_game_over, (175, 20))
-            self.screen.blit(self.images.img_box, (250, 500))
+            self.screen.blit(self.images.img_game_over, (175, 90))
             rect_menu = self.images.img_menu.get_rect()
             rect_menu.x = 250
-            rect_menu.y = 700
+            rect_menu.y = 600
             rect_menu_hover = self.images.img_menu_hover.get_rect()
             rect_menu_hover.x = 250
-            rect_menu_hover.y = 700
+            rect_menu_hover.y = 600
             self.screen.blit(self.images.img_menu, rect_menu)
-            text_ui = font.render(text, True, (0, 0, 0))
             if rect_menu_hover.collidepoint(pygame.mouse.get_pos()):
                 self.screen.blit(self.images.img_menu_hover, rect_menu_hover)
             for event in pygame.event.get():
@@ -418,17 +359,6 @@ class Game:
                         self.run_game_over = False
                         self.run_menu = True
                         self.main_menu()
-                if event.type == pygame.TEXTINPUT:
-                    if len(text) < 10 and event.text.isalnum():
-                        text += event.text
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_BACKSPACE:
-                        text = text[:-1]
-            text = text.lower()
-            if len(text) == 0:
-                self.screen.blit(empty, (300, 545))
-            if len(text) > 0:
-                self.screen.blit(text_ui, (300, 545))
             pygame.display.update()
     def run(self):
         

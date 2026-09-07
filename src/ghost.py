@@ -1,79 +1,71 @@
 import pygame
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    import pygame
-    from src.ui import AssetManager
-    from src.maze import Maze
-
 import random
-from typing import Optional
-from src.constants import GHOST_MOVE_TICK, Direction
-
+from src.constants import CELL_SIZE, MAZE_OFFSET_X, MAZE_OFFSET_Y, GHOST_SIZE
 
 class Ghost:
-    def __init__(self, row: int, col: int, color: str) -> None:
+    def __init__(self, row, col, img_path):
         self.row = row
         self.col = col
         self.home = (row, col)
-        self.color = color
+        self.visual_x = col * CELL_SIZE
+        self.visual_y = row * CELL_SIZE
+        self.is_edible = False
         self.is_eaten = False
         self.respawn_at = 0
+        self.normal_img = pygame.transform.scale(
+            pygame.image.load(img_path), (GHOST_SIZE, GHOST_SIZE)
+        )
+        self.edible_img = pygame.transform.scale(
+            pygame.image.load("assets/images/ghost_eatble.png"), (GHOST_SIZE, GHOST_SIZE)
+        )
+        self.current_img = self.normal_img
 
-        self.visual_x: Optional[float] = None
-        self.visual_y: Optional[float] = None
+    def update_visual(self):
+        from src.constants import GHOST_SPEED_TICKS
+        target_x = self.col * CELL_SIZE
+        target_y = self.row * CELL_SIZE
+        speed = CELL_SIZE / GHOST_SPEED_TICKS
+        
+        if self.visual_x < target_x:
+            self.visual_x = min(target_x, self.visual_x + speed)
+        elif self.visual_x > target_x:
+            self.visual_x = max(target_x, self.visual_x - speed)
+            
+        if self.visual_y < target_y:
+            self.visual_y = min(target_y, self.visual_y + speed)
+        elif self.visual_y > target_y:
+            self.visual_y = max(target_y, self.visual_y - speed)
 
-    def respawn(self) -> None:
+    def make_edible(self):
+        self.is_edible = True
+
+    def respawn(self):
         self.row, self.col = self.home
+        self.visual_x = self.col * CELL_SIZE
+        self.visual_y = self.row * CELL_SIZE
         self.is_eaten = False
-        self.visual_x = None
-        self.visual_y = None
+        self.is_edible = False
 
-    def move(self, maze: 'Maze') -> None:
+    def move(self, maze):
         directions = []
-        if maze.can_move(self.row, self.col, Direction.UP):
+        if maze.can_move(self.row, self.col, "up"):
             directions.append((-1, 0))
-        if maze.can_move(self.row, self.col, Direction.DOWN):
+        if maze.can_move(self.row, self.col, "down"):
             directions.append((1, 0))
-        if maze.can_move(self.row, self.col, Direction.LEFT):
+        if maze.can_move(self.row, self.col, "left"):
             directions.append((0, -1))
-        if maze.can_move(self.row, self.col, Direction.RIGHT):
+        if maze.can_move(self.row, self.col, "right"):
             directions.append((0, 1))
-
         if directions:
             dr, dc = random.choice(directions)
             self.row += dr
             self.col += dc
 
-    def draw(
-            self,
-            screen: pygame.Surface,
-            assets: 'AssetManager',
-            cell_size: int,
-            offset_x: int,
-            offset_y: int,
-            edible: bool = False) -> None:
+    def draw(self, screen, edible=False):
         if self.is_eaten:
             return
-
-        target_x = self.col * cell_size + offset_x
-        target_y = self.row * cell_size + offset_y
-
-        if self.visual_x is None or self.visual_y is None:
-            self.visual_x = target_x
-            self.visual_y = target_y
-
-        dx = target_x - self.visual_x
-        dy = target_y - self.visual_y
-        dist = (dx**2 + dy**2)**0.5
-
-        speed = cell_size / GHOST_MOVE_TICK
-
-        if dist < speed:
-            self.visual_x = target_x
-            self.visual_y = target_y
-        elif dist > 0:
-            self.visual_x += (dx / dist) * speed
-            self.visual_y += (dy / dist) * speed
-
-        img = assets.ghosts["edible"] if edible else assets.ghosts[self.color]
-        screen.blit(img, (int(self.visual_x), int(self.visual_y)))
+        x = self.visual_x + MAZE_OFFSET_X
+        y = self.visual_y + MAZE_OFFSET_Y
+        img = self.edible_img if edible else self.current_img
+        screen.blit(img, (x, y))
+    

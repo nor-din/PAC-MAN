@@ -1,28 +1,28 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    import pygame
-    from src.ui import AssetManager
-
-from src.constants import POINTS_PACGUM, POINTS_SUPER_PACGUM
-
+import pygame
+from src.constants import CELL_SIZE, PACGUM_SIZE, PACGUM_POINTS, SUPER_PACGUM_POINTS, MAZE_OFFSET_X, MAZE_OFFSET_Y
 
 class Pacgum:
-    def __init__(self, row: int, col: int, is_super: bool = False):
+    YELLOW = (255, 255, 0)
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+
+    def __init__(self, row, col , is_super=False):
         self.row = row
         self.col = col
         self.is_super = is_super
-        self.points = POINTS_SUPER_PACGUM if is_super else POINTS_PACGUM
+        self.is_eaten = False
+        self.points = SUPER_PACGUM_POINTS if is_super else PACGUM_POINTS
+        if is_super:
+            self.img = pygame.image.load("assets/images/super_pacgum.png")
+        else:
+            self.img = pygame.image.load("assets/images/pacgum.png")
+        self.img = pygame.transform.scale(self.img, (PACGUM_SIZE, PACGUM_SIZE))
 
-    def draw(
-            self,
-            screen: 'pygame.Surface',
-            assets: 'AssetManager',
-            cell_size: int,
-            offset_x: int,
-            offset_y: int) -> None:
-        pacgum_size = int(cell_size * 0.5)
-        padding = (cell_size - pacgum_size) // 2
-        x = self.col * cell_size + offset_x + padding
-        y = self.row * cell_size + offset_y + padding
-        img = assets.pacgum["super"] if self.is_super else assets.pacgum["normal"]
-        screen.blit(img, (x, y))
+    def eat(self):
+        self.is_eaten = True
+
+    def draw(self, screen):
+        if not self.is_eaten:
+            x = self.col * CELL_SIZE + MAZE_OFFSET_X + (CELL_SIZE - PACGUM_SIZE) // 2
+            y = self.row * CELL_SIZE + MAZE_OFFSET_Y + (CELL_SIZE - PACGUM_SIZE) // 2
+            screen.blit(self.img, (x, y))

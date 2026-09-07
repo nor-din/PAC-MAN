@@ -1,78 +1,63 @@
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    import pygame
-    from src.ui import AssetManager
-
-from typing import List, Tuple
-from src.constants import Direction
-
+import pygame
+from src.constants import CELL_SIZE, MAZE_OFFSET_X, MAZE_OFFSET_Y
 
 class Maze:
     """Maze class for MazeGenerator output."""
 
-    def __init__(self, grid: List[List[int]]) -> None:
+    def __init__(self, grid):
         """Initialize maze."""
         self.grid = grid
         self.rows = len(grid)
-        self.cols = len(grid[0]) if self.rows > 0 else 0
+        self.cols = len(grid[0])
+        self.wallv_img = pygame.transform.scale(
+            pygame.image.load("assets/images/wall_v.png"), (4, CELL_SIZE))
+        self.wallh_img = pygame.transform.scale(
+            pygame.image.load("assets/images/wall_h.png"), (CELL_SIZE, 4))
+        
 
-    def is_blocked(self, row: int, col: int) -> bool:
+    def is_blocked(self, row, col):
         """Check if cell is fully blocked."""
-        if row < 0 or row >= self.rows or col < 0 or col >= self.cols:
-            return True
         return self.grid[row][col] == 15
 
-    def can_move(self, row: int, col: int, direction: Direction) -> bool:
+    def can_move(self, row, col, direction):
         """Check if can move in direction."""
-        if row < 0 or row >= self.rows or col < 0 or col >= self.cols:
-            return False
-
         cell = self.grid[row][col]
 
-        if direction == Direction.UP:
+        if direction == "up":
             return cell & 1 == 0
-        if direction == Direction.RIGHT:
+
+        if direction == "right":
             return cell & 2 == 0
-        if direction == Direction.DOWN:
+
+        if direction == "down":
             return cell & 4 == 0
-        if direction == Direction.LEFT:
+
+        if direction == "left":
             return cell & 8 == 0
 
         return False
 
-    def draw(
-            self,
-            screen: 'pygame.Surface',
-            assets: 'AssetManager',
-            cell_size: int,
-            offset_x: int,
-            offset_y: int) -> None:
+    def draw(self, screen):
         """Draw maze walls as lines."""
         for row in range(self.rows):
             for col in range(self.cols):
                 cell = self.grid[row][col]
-                x = col * cell_size + offset_x
-                y = row * cell_size + offset_y
+                x = col * CELL_SIZE + MAZE_OFFSET_X
+                y = row * CELL_SIZE + MAZE_OFFSET_Y
 
-                wall_thick = max(1, cell_size // 10)
-
-                # 1 = top wall
                 if cell & 1:
-                    screen.blit(assets.maze["wall_h"], (x, y))
+                    screen.blit(self.wallh_img, (x, y))
 
-                # 2 = right wall
                 if cell & 2:
-                    screen.blit(assets.maze["wall_v"], (x + cell_size - wall_thick, y))
+                    screen.blit(self.wallv_img, (x + CELL_SIZE - 4, y))
 
-                # 4 = bottom wall
                 if cell & 4:
-                    screen.blit(assets.maze["wall_h"], (x, y + cell_size - wall_thick))
+                    screen.blit(self.wallh_img, (x, y + CELL_SIZE - 4))
 
-                # 8 = left wall
                 if cell & 8:
-                    screen.blit(assets.maze["wall_v"], (x, y))
+                    screen.blit(self.wallv_img, (x, y))
 
-    def get_empty_cells(self) -> List[Tuple[int, int]]:
+    def get_empty_cells(self):
         """Get all non-blocked cells."""
         empty = []
         for row in range(self.rows):

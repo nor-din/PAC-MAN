@@ -1,4 +1,5 @@
 install:
+	pip install uv
 	uv sync
 
 run:
@@ -8,10 +9,9 @@ debug:
 	uv run python3 -m pdb pac-man.py config.json
 
 clean:
-	rm -rf __pycache__ src/__pycache__
-	rm -rf .mypy_cache
-	rm -rf .pytest_cache
-	rm -rf .venv
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	rm -rf .mypy_cache .pytest_cache
 
 lint:
 	uv run flake8 .
@@ -20,5 +20,3 @@ lint:
 lint-strict:
 	uv run flake8 .
 	uv run mypy . --strict
-
-.PHONY: install run debug clean lint lint-strict

@@ -1,36 +1,30 @@
-from enum import Enum, auto
+"""Game constants for easy modification."""
 
+# Display / Dimensions
+CELL_SIZE = 40
+MAZE_OFFSET_X = 200
+MAZE_OFFSET_Y = 200
+PLAYER_SIZE = 36
+GHOST_SIZE = 40
+PACGUM_SIZE = 30
 
-class GameState(Enum):
-    MENU = auto()
-    INSTRUCTIONS = auto()
-    PLAYING = auto()
-    PAUSED = auto()
-    GAME_OVER = auto()
-
-
-class Direction(Enum):
-    UP = auto()
-    DOWN = auto()
-    LEFT = auto()
-    RIGHT = auto()
-
-
-# Display Settings
+# Game Logic
+STARTING_LIVES = 3
+DEFAULT_TIME_LIMIT = 90
 FPS = 60
-MAX_BOARD_WIDTH = 600
-MAX_BOARD_HEIGHT = 700
 
-# Visual Settings
-LERP_FACTOR = 0.3  # Between 0.0 and 1.0 (1.0 = instant snap, 0.1 = very slow glide)
+# Speeds
+PLAYER_SPEED_TICKS = 10
+GHOST_SPEED_TICKS = 20
+PLAYER_DEFAULT_MOVE = 1
+PLAYER_CHEAT_MOVE = 2
+PLAYER_ANIM_SPEED = 7
 
-# Gameplay Logic (Lower is faster because it represents frame modulo)
-PLAYER_MOVE_TICK = 8
-GHOST_MOVE_TICK = 18
-RESPAWN_DELAY_MS = 8000
-EDIBLE_DURATION_MS = 7000
+# Timers
+GHOST_RESPAWN_MS = 8000
+SUPER_PACGUM_DURATION_MS = 7000
 
 # Scoring
-POINTS_PACGUM = 10
-POINTS_SUPER_PACGUM = 50
-POINTS_GHOST = 200
+PACGUM_POINTS = 10
+SUPER_PACGUM_POINTS = 50
+GHOST_POINTS = 200
