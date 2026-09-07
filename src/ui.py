@@ -39,7 +39,8 @@ class AssetManager:
         self.img_instructions_title = pygame.transform.scale(
             pygame.image.load("assets/images/instructions_title.png"), (800, 200))
         self.img_controls = pygame.transform.scale(pygame.image.load("assets/images/controls.png"), (700, 500))
-
+        self.img_box = pygame.image.load("assets/images/box.png")
+        self.img_box = pygame.transform.scale(self.img_box, (500, 150))
         # Raw Game Entity Images (Unscaled)
         self._raw_ghosts = {
             "pink": pygame.image.load("assets/images/ghost_pink.png"),
