@@ -53,7 +53,7 @@ class Images:
         self.img_instructions_title = pygame.image.load("assets/images/instructions_title.png")
         self.img_instructions_title = pygame.transform.scale(self.img_instructions_title, (800, 200))
         self.img_controls = pygame.image.load("assets/images/controls.png")
-        self.img_controls = pygame.transform.scale(self.img_controls, (700, 500))
+        self.img_controls = pygame.transform.scale(self.img_controls, (1000, 500))
         self.img_box = pygame.image.load("assets/images/box.png")
         self.img_box = pygame.transform.scale(self.img_box, (500, 150))
         self.img_save = pygame.image.load("assets/images/save.png")

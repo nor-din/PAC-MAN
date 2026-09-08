@@ -223,7 +223,7 @@ class Game:
             BLACK = (0, 0 ,0)
             self.screen.fill(BLACK)
             self.screen.blit(self.images.img_instructions_title, (100, 10))
-            self.screen.blit(self.images.img_controls, (150, 250))
+            self.screen.blit(self.images.img_controls, (0, 250))
             self.screen.blit(self.images.img_menu, (250, 800))
             rect_menu_hover = self.images.img_menu_hover.get_rect()
             rect_menu_hover.x = 250
