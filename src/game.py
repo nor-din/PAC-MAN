@@ -340,8 +340,13 @@ class Game:
         font = pygame.font.Font(None, 95)
         empty = font.render("Enter user", True, (0, 0, 0))
         text = ""
-        with open("highscore.json", "r") as f:
-            data = json.load(f)
+        data = {}
+        try:
+            with open("highscore.json", "r") as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError):
+            with open("highscore.json", "w") as f:
+                json.dump({}, f, indent=2)
         while self.run_game_over:
             BLACK = (0, 0 ,0)
             self.screen.fill(BLACK)
@@ -368,13 +373,14 @@ class Game:
                             data[text] = max(data[text], self.player.score)
                         else:
                             data[text] = self.player.score
+                        data = dict(sorted(data.items(), key=lambda item: item[1], reverse=True))
                         with open("highscore.json", "w") as f:
                             json.dump(data, f, indent=2)
                         self.run_game_over = False
                         self.run_menu = True
                         self.main_menu()
                 if event.type == pygame.TEXTINPUT:
-                    if len(text) < 10 and event.text.isalnum():
+                    if len(text) < 10 and (event.text.isalnum() or event.text == " "):
                         text += event.text
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
