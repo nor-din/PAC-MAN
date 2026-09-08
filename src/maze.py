@@ -1,5 +1,4 @@
 import pygame
-from src.constants import CELL_SIZE, MAZE_OFFSET_X, MAZE_OFFSET_Y
 
 class Maze:
     """Maze class for MazeGenerator output."""
@@ -10,9 +9,9 @@ class Maze:
         self.rows = len(grid)
         self.cols = len(grid[0])
         self.wallv_img = pygame.transform.scale(
-            pygame.image.load("assets/images/wall_v.png"), (4, CELL_SIZE))
+            pygame.image.load("assets/images/wall_v.png"), (4, 40))
         self.wallh_img = pygame.transform.scale(
-            pygame.image.load("assets/images/wall_h.png"), (CELL_SIZE, 4))
+            pygame.image.load("assets/images/wall_h.png"), (40, 4))
         
 
     def is_blocked(self, row, col):
@@ -42,17 +41,17 @@ class Maze:
         for row in range(self.rows):
             for col in range(self.cols):
                 cell = self.grid[row][col]
-                x = col * CELL_SIZE + MAZE_OFFSET_X
-                y = row * CELL_SIZE + MAZE_OFFSET_Y
+                x = col * 40 + 200
+                y = row * 40 + 200
 
                 if cell & 1:
                     screen.blit(self.wallh_img, (x, y))
 
                 if cell & 2:
-                    screen.blit(self.wallv_img, (x + CELL_SIZE - 4, y))
+                    screen.blit(self.wallv_img, (x + 40 - 4, y))
 
                 if cell & 4:
-                    screen.blit(self.wallh_img, (x, y + CELL_SIZE - 4))
+                    screen.blit(self.wallh_img, (x, y + 40 - 4))
 
                 if cell & 8:
                     screen.blit(self.wallv_img, (x, y))

@@ -1,0 +1,6 @@
+{
+  "highscore_filename": "highscore.json",
+  "lives": 10,
+  "seed": 42,
+  "level_max_time": 90
+}

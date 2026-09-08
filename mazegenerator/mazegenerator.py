@@ -8,7 +8,7 @@ class MazeGenerator:
     def __init__(self, size: tuple[int, int] = (15, 15), perfect: bool = False,
                  entry_cell: tuple[int, int] = (0, 0),
                  exit_cell: tuple[int, int] = (-1, -1),
-                 seed: int = 0) -> None:
+                 seed=None) -> None:
         self._width = size[0]
         self._height = size[1]
         self._perfect = perfect
@@ -43,8 +43,9 @@ class MazeGenerator:
     def maze_exit(self) -> tuple[int, int]:
         return self._exitx, self._exity
 
-    def generate(self, seed: int = 0) -> None:
-        random.seed(seed) if seed > 0 else random.seed()
+    def generate(self, seed=None) -> None:
+        if seed is not None:
+            random.seed(seed)
         self._seed = seed
         self._create_empty_maze()
         self._add_42_to_maze()

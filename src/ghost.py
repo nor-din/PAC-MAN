@@ -1,30 +1,29 @@
 import pygame
 import random
-from src.constants import CELL_SIZE, MAZE_OFFSET_X, MAZE_OFFSET_Y, GHOST_SIZE
+import src.game
 
 class Ghost:
     def __init__(self, row, col, img_path):
         self.row = row
         self.col = col
         self.home = (row, col)
-        self.visual_x = col * CELL_SIZE
-        self.visual_y = row * CELL_SIZE
+        self.visual_x = col * 40
+        self.visual_y = row * 40
         self.is_edible = False
         self.is_eaten = False
         self.respawn_at = 0
         self.normal_img = pygame.transform.scale(
-            pygame.image.load(img_path), (GHOST_SIZE, GHOST_SIZE)
+            pygame.image.load(img_path), (40, 40)
         )
         self.edible_img = pygame.transform.scale(
-            pygame.image.load("assets/images/ghost_eatble.png"), (GHOST_SIZE, GHOST_SIZE)
+            pygame.image.load("assets/images/ghost_eatble.png"), (40, 40)
         )
         self.current_img = self.normal_img
 
     def update_visual(self):
-        from src.constants import GHOST_SPEED_TICKS
-        target_x = self.col * CELL_SIZE
-        target_y = self.row * CELL_SIZE
-        speed = CELL_SIZE / GHOST_SPEED_TICKS
+        target_x = self.col * 40
+        target_y = self.row * 40
+        speed = 40 / src.game.Game.config_dict["ghost_speed_ticks"]
         
         if self.visual_x < target_x:
             self.visual_x = min(target_x, self.visual_x + speed)
@@ -41,8 +40,8 @@ class Ghost:
 
     def respawn(self):
         self.row, self.col = self.home
-        self.visual_x = self.col * CELL_SIZE
-        self.visual_y = self.row * CELL_SIZE
+        self.visual_x = self.col * 40
+        self.visual_y = self.row * 40
         self.is_eaten = False
         self.is_edible = False
 
@@ -64,8 +63,8 @@ class Ghost:
     def draw(self, screen, edible=False):
         if self.is_eaten:
             return
-        x = self.visual_x + MAZE_OFFSET_X
-        y = self.visual_y + MAZE_OFFSET_Y
+        x = self.visual_x + 200
+        y = self.visual_y + 200
         img = self.edible_img if edible else self.current_img
         screen.blit(img, (x, y))
     

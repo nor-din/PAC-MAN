@@ -8,18 +8,17 @@ from src.pacgum import Pacgum
 from src.ghost import Ghost
 from src.ui import Images
 from src.cheat import Cheat
-from src.constants import STARTING_LIVES, DEFAULT_TIME_LIMIT, GHOST_POINTS, GHOST_RESPAWN_MS, SUPER_PACGUM_DURATION_MS, FPS, PLAYER_SPEED_TICKS, GHOST_SPEED_TICKS, PLAYER_DEFAULT_MOVE, PLAYER_CHEAT_MOVE
-
-
 class Game:
+    config_dict = {}
     def __init__(self, screen):
         self.screen = screen
         self.images = Images()
         self.cheat = Cheat()
         self.level = 1
         self.gen = MazeGenerator(
-            size=(15, 15),
-            perfect=False
+            size=(Game.config_dict.get("maze_rows", 15), Game.config_dict.get("maze_cols", 15)),
+            perfect=False,
+            seed=Game.config_dict.get("seed", None)
         )
         self.maze = Maze(self.gen.maze)
         self.middel_row = self.maze.rows // 2
@@ -37,7 +36,7 @@ class Game:
         self._place_ghosts()
         self._place_pacgums()
         self.time_start = 0
-        self.time = DEFAULT_TIME_LIMIT
+        self.time = Game.config_dict.get("level_max_time", 90)
         self.running = True
         self.run_menu = True
         self.run_game = True
@@ -49,19 +48,19 @@ class Game:
         self.current_dir = None
         self.step_ghost = 0
         self.step_player = 0
-        self.move_player = PLAYER_DEFAULT_MOVE
+        self.move_player = Game.config_dict.get("player_default_move", 1)
         self.edible_until = 0
-        self.points_ghost = GHOST_POINTS
-        self.respawn_ms = GHOST_RESPAWN_MS
+        self.points_ghost = Game.config_dict.get("points_per_ghost", 200)
+        self.respawn_ms = Game.config_dict.get("ghost_respawn_ms", 8000)
     def _place_pacgums(self):
         for row in range(self.maze.rows):
             for col in range(self.maze.cols):
                 if not (self.player.row == row and self.player.col == col):
                     if not self.maze.is_blocked(row, col):
                         if (row, col) in self.corners:
-                            self.pacgums.append(Pacgum(row, col, True))
+                            self.pacgums.append(Pacgum(row, col, True, points=Game.config_dict.get("points_per_super_pacgum", 50)))
                         else:
-                            self.pacgums.append(Pacgum(row, col))
+                            self.pacgums.append(Pacgum(row, col, points=Game.config_dict.get("points_per_pacgum", 10)))
     def _place_ghosts(self):
         row, col = self.corners[0]
         if not self.maze.is_blocked(row, col):
@@ -84,7 +83,6 @@ class Game:
         self.time_start = pygame.time.get_ticks()
         self.current_dir = None
         self.step = 0
-        self.player.lives = STARTING_LIVES
         self.cheat.frezz = False
         self.cheat.invincible = False
         self.cheat.speed = False
@@ -108,12 +106,12 @@ class Game:
             self.screen.blit(self.images.img_dig[d], (self.time_x, self.time_y))
             self.time_x += 50
         eaten = [p for p in self.pacgums
-                 if self.player.row == p.row and self.player.col == p.col]
+                 if abs(self.player.visual_x - p.col * 40) < 15 and abs(self.player.visual_y - p.row * 40) < 15]
         for p in eaten:
             self.pacgums.remove(p)
             self.player.score += p.points
             if p.is_super:
-                self.edible_until = pygame.time.get_ticks() + SUPER_PACGUM_DURATION_MS
+                self.edible_until = pygame.time.get_ticks() + Game.config_dict.get("super_pacgum_duration_ms", 7000)
         for pacgum in self.pacgums:
             pacgum.draw(self.screen)
         now = pygame.time.get_ticks()
@@ -123,7 +121,7 @@ class Game:
                 continue
             if ghost.is_eaten and now >= ghost.respawn_at:
                 ghost.respawn()
-            if (ghost.row == self.player.row and ghost.col == self.player.col):
+            if abs(ghost.visual_x - self.player.visual_x) < 20 and abs(ghost.visual_y - self.player.visual_y) < 20:
                 if edible:
                     self.player.score += self.points_ghost
                     ghost.is_eaten = True
@@ -247,7 +245,7 @@ class Game:
         rect_pause.x = 5
         rect_pause.y = 5
         while self.run_game:
-            clock.tick(FPS)
+            clock.tick(Game.config_dict.get("fps", 60))
             keys = pygame.key.get_pressed()
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -255,7 +253,6 @@ class Game:
                         self.run_pause_menu = True
                         self.pause_menu()
                 if event.type == pygame.QUIT:
-                    self.running = False
                     self.run_game = False
                     sys.exit(0)
                 if event.type == pygame.KEYDOWN:
@@ -270,10 +267,10 @@ class Game:
                         self.cheat.speed = not self.cheat.speed
                         if self.cheat.speed:
                             self.step_player = 0
-                            self.move_player = PLAYER_CHEAT_MOVE
+                            self.move_player = Game.config_dict.get("player_cheat_move", 2)
                         else:
                             self.step_player = 0
-                            self.move_player = PLAYER_DEFAULT_MOVE
+                            self.move_player = Game.config_dict.get("player_default_move", 1)
             if keys[pygame.K_UP] and self.maze.can_move(self.player.row, self.player.col, "up"):
                 self.current_dir = "up" 
             if keys[pygame.K_DOWN] and self.maze.can_move(self.player.row, self.player.col, "down"):
@@ -284,7 +281,7 @@ class Game:
                 self.current_dir = "right"
             self.step_ghost += 1
             self.step_player += self.move_player
-            if self.step_player % PLAYER_SPEED_TICKS == 0:
+            if self.step_player % Game.config_dict.get("player_speed_ticks", 10) == 0:
                 if self.current_dir == "up":
                     self.player.move_up(self.maze)
                 if self.current_dir == "down":
@@ -293,7 +290,7 @@ class Game:
                     self.player.move_left(self.maze)
                 if self.current_dir == "right":
                     self.player.move_right(self.maze)
-            if self.step_ghost % GHOST_SPEED_TICKS == 0:
+            if self.step_ghost % Game.config_dict.get("ghost_speed_ticks", 20) == 0:
                 if not self.cheat.frezz:
                     for ghost in self.ghosts:
                         ghost.move(self.maze)
@@ -341,11 +338,12 @@ class Game:
         empty = font.render("Enter user", True, (0, 0, 0))
         text = ""
         data = {}
+        hs_file = Game.config_dict.get("highscore_filename", "highscore.json")
         try:
-            with open("highscore.json", "r") as f:
+            with open(hs_file, "r") as f:
                 data = json.load(f)
         except (json.JSONDecodeError, FileNotFoundError):
-            with open("highscore.json", "w") as f:
+            with open(hs_file, "w") as f:
                 json.dump({}, f, indent=2)
         while self.run_game_over:
             BLACK = (0, 0 ,0)
@@ -374,7 +372,7 @@ class Game:
                         else:
                             data[text] = self.player.score
                         data = dict(sorted(data.items(), key=lambda item: item[1], reverse=True))
-                        with open("highscore.json", "w") as f:
+                        with open(hs_file, "w") as f:
                             json.dump(data, f, indent=2)
                         self.run_game_over = False
                         self.run_menu = True

@@ -1,9 +1,16 @@
 import pygame
-from src.game import Game
-
-
+import sys
+from src.game_config import parse_config
 
 def main() -> None:
+    if len(sys.argv) != 2:
+        raise FileNotFoundError("Missing config-file name: python3 pac-man.py config.json")
+        
+    config_file = sys.argv[1]
+    config = parse_config(config_file)
+    
+    from src.game import Game
+    Game.config_dict = config
     pygame.init()
 
     screen = pygame.display.set_mode((1000, 1000))
