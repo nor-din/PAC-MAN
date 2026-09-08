@@ -41,6 +41,16 @@ def is_valid(key, value):
 
     return False
 
+
+def remove_comments(lines):
+    clean_lines = []
+
+    for line in lines:
+        clean_lines.append(line.partition('#')[0])
+
+    return "\n".join(clean_lines)
+
+
 def parse_config(filename: str):
     config_dict = {
         "highscore_filename": "highscore.json",
@@ -60,7 +70,7 @@ def parse_config(filename: str):
 
         # Speeds & Debugging
         "player_speed_ticks": 10,
-        "ghost_speed_ticks": 20,
+        "ghost_speed_ticks": 30,
         "player_default_move": 1,
         "player_cheat_move": 2,
 
@@ -80,9 +90,9 @@ def parse_config(filename: str):
         }
 
     try:
-        with open(filename, 'r') as config_json:
-            # TODO: Handle custom parsing and comment removal here
-            user_config = json.load(config_json)
+        with open(filename, 'r') as config_file:
+            cleaned_file = remove_comments(config_file.readlines())
+            user_config = json.loads(cleaned_file)
 
         # Override defaults with valid user inputs
         for key in config_dict:

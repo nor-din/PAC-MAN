@@ -5,7 +5,7 @@ from mazegenerator import MazeGenerator
 from src.maze import Maze
 from src.player import Player
 from src.pacgum import Pacgum
-from src.ghost import Ghost
+from src.ghost import Ghost, chase_red, chase_pink, chase_blue, chase_yellow
 from src.ui import Images
 from src.cheat import Cheat
 class Game:
@@ -64,16 +64,16 @@ class Game:
     def _place_ghosts(self):
         row, col = self.corners[0]
         if not self.maze.is_blocked(row, col):
-            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_pink.png"))
+            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_pink.png", chasing_function=chase_pink))
         row, col = self.corners[1]
         if not self.maze.is_blocked(row, col):
-            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_green.png"))
+            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_red.png", chasing_function=chase_red))
         row, col = self.corners[2]
         if not self.maze.is_blocked(row, col):
-            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_yellow.png"))
+            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_yellow.png", chasing_function=chase_yellow))
         row, col = self.corners[3]
         if not self.maze.is_blocked(row, col):
-            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_blue.png"))
+            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_blue.png", chasing_function=chase_blue))
     def rest(self):
         self.player = Player(self.middel_row, self.middel_col)
         self.pacgums = []
@@ -86,6 +86,48 @@ class Game:
         self.cheat.frezz = False
         self.cheat.invincible = False
         self.cheat.speed = False
+
+    def next_level(self):
+        self.level += 1
+        
+        current_ticks = Game.config_dict.get("ghost_speed_ticks", 20)
+        Game.config_dict["ghost_speed_ticks"] = max(5, current_ticks - 2)
+        
+        seed = Game.config_dict.get("seed", None)
+        if seed is not None:
+            seed = f"{seed}_{self.level}"
+            
+        self.gen = MazeGenerator(
+            size=(Game.config_dict.get("maze_rows", 15), Game.config_dict.get("maze_cols", 15)),
+            perfect=False,
+            seed=seed
+        )
+        self.maze = Maze(self.gen.maze)
+        self.middel_row = self.maze.rows // 2
+        self.middel_col = self.maze.cols // 2
+        
+        self.player.row = self.middel_row
+        self.player.col = self.middel_col
+        self.player.visual_x = self.middel_col * 40
+        self.player.visual_y = self.middel_row * 40
+        self.player.direction = "right"
+        self.current_dir = None
+        self.step_player = 0
+        
+        self.pacgums = []
+        self.ghosts = []
+        self.corners = [
+            (0, 0),
+            (0, self.maze.cols - 1),
+            (self.maze.rows - 1, 0),
+            (self.maze.rows - 1, self.maze.cols - 1)
+        ]
+        self._place_ghosts()
+        self._place_pacgums()
+        
+        self.time_start = pygame.time.get_ticks()
+        self.step_ghost = 0
+        self.edible_until = 0
     def draw(self):
         BLACK = (0, 0 ,0)
         i = 50
@@ -112,11 +154,19 @@ class Game:
             self.player.score += p.points
             if p.is_super:
                 self.edible_until = pygame.time.get_ticks() + Game.config_dict.get("super_pacgum_duration_ms", 7000)
+                for ghost in self.ghosts:
+                    if ghost.current_dir:
+                        ghost.current_dir = (-ghost.current_dir[0], -ghost.current_dir[1])
+                        
+        if len(self.pacgums) == 0:
+            self.next_level()
+            
         for pacgum in self.pacgums:
             pacgum.draw(self.screen)
         now = pygame.time.get_ticks()
         edible = now < self.edible_until
         for ghost in self.ghosts:
+            ghost.is_edible = edible
             if ghost.is_eaten and now < ghost.respawn_at:
                 continue
             if ghost.is_eaten and now >= ghost.respawn_at:
@@ -292,8 +342,9 @@ class Game:
                     self.player.move_right(self.maze)
             if self.step_ghost % Game.config_dict.get("ghost_speed_ticks", 20) == 0:
                 if not self.cheat.frezz:
+                    Ghost.update_shared_mode(pygame.time.get_ticks())
                     for ghost in self.ghosts:
-                        ghost.move(self.maze)
+                        ghost.workflow(self.maze, self.player)
                         
             if not self.cheat.frezz:
                 for ghost in self.ghosts:
