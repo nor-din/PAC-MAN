@@ -31,7 +31,7 @@ def get_greedy_move(ghost, maze, target_row, target_col, run_away=False):
             if dist < best_dist:
                 best_dist = dist
                 best_dir = (dr, dc)
-                
+
     ghost.row += best_dir[0]
     ghost.col += best_dir[1]
     ghost.current_dir = best_dir
@@ -81,7 +81,7 @@ class Ghost:
             cls.shared_mode = "scatter"
             cls.last_mode_switch_time = current_time
 
-    def __init__(self, row, col, img_path, chasing_function=None):
+    def __init__(self, row, col, img_path, chasing_function=chase_blue):
         self.row = row
         self.col = col
         self.home = (row, col)
@@ -93,7 +93,7 @@ class Ghost:
         self.current_dir = None
         
         # Unique chasing attribute, defaults to moving randomly
-        self.chasing_function = chasing_function if chasing_function else lambda g, m, p: g._move_randomly(m)
+        self.chasing_function = chasing_function
         
         self.normal_img = pygame.transform.scale(
             pygame.image.load(img_path), (40, 40)
@@ -144,22 +144,18 @@ class Ghost:
             reverse_dir = (-self.current_dir[0], -self.current_dir[1])
             if reverse_dir in directions:
                 directions.remove(reverse_dir)
-                
+
         if directions:
             dr, dc = random.choice(directions)
             self.row += dr
             self.col += dc
             self.current_dir = (dr, dc)
 
-    def _scatter(self, maze):
-        # Shared scatter method, defaults to random movement for now
-        self._move_randomly(maze)
-
     def workflow(self, maze, player):
         if self.is_edible:
             self._move_randomly(maze)
         elif Ghost.shared_mode == "scatter":
-            self._scatter(maze)
+            self._move_randomly(maze)
         elif Ghost.shared_mode == "chase":
             self.chasing_function(self, maze, player)
 
