@@ -29,21 +29,23 @@ def is_valid(key, value):
         if not path.parent.exists():
             return False
 
-        return True
-
-    elif key in numeric_set:
+    if key in numeric_set:
         if not isinstance(value, int) or isinstance(value, bool):
             return False
 
         if value <= 0:
             return False
 
-        return True
 
-    elif key == "seed":
+
+    if key == "seed":
         return value is None or isinstance(value, (int, float, str))
 
-    return False
+    if key == "lives":
+        if value >= 99:
+            return False
+
+    return True
 
 
 def remove_comments(lines):

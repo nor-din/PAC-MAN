@@ -12,10 +12,6 @@ def get_top_ten():
             highscores = json.load(high_score_file)
     except FileNotFoundError:
         highscores = {}
-
-    highscores = [(name, score) for name, score in highscores.items()]
-
-    if len(highscores) <= 10:
-        return highscores
-    else:
-        return highscores[:10]
+    
+    hscores = sorted(highscores.items(), key=lambda x: x[1], reverse=True)
+    return hscores[:10]

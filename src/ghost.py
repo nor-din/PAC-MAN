@@ -153,7 +153,7 @@ class Ghost:
 
     def workflow(self, maze, player):
         if self.is_edible:
-            self._move_randomly(maze)
+            get_greedy_move(self, maze, player.row, player.col, run_away=True)
         elif Ghost.shared_mode == "scatter":
             self._move_randomly(maze)
         elif Ghost.shared_mode == "chase":

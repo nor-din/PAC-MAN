@@ -8,6 +8,9 @@ from src.pacgum import Pacgum
 from src.ghost import Ghost, chase_red, chase_pink, chase_blue, chase_yellow
 from src.ui import Images
 from src.cheat import Cheat
+from src.highscore import get_top_ten
+
+
 class Game:
     config_dict = {}
     def __init__(self, screen):
@@ -43,6 +46,7 @@ class Game:
         self.run_game_over = True
         self.run_pause_menu = True
         self.run_instruction = True
+        self.run_highscore = True
         self.socre_y = 910
         self.time_y = 10
         self.current_dir = None
@@ -86,13 +90,14 @@ class Game:
         self.cheat.frezz = False
         self.cheat.invincible = False
         self.cheat.speed = False
+        self.cheat.skip_level = False
 
     def next_level(self):
         self.level += 1
         
         current_ticks = Game.config_dict.get("ghost_speed_ticks", 20)
         Game.config_dict["ghost_speed_ticks"] = max(5, current_ticks - 2)
-        
+
         seed = Game.config_dict.get("seed", None)
         if seed is not None:
             seed = f"{seed}_{self.level}"
@@ -158,7 +163,7 @@ class Game:
                     if ghost.current_dir:
                         ghost.current_dir = (-ghost.current_dir[0], -ghost.current_dir[1])
                         
-        if len(self.pacgums) == 0:
+        if len(self.pacgums) == 0 or self.cheat.skip_level:
             self.next_level()
             
         for pacgum in self.pacgums:
@@ -263,6 +268,10 @@ class Game:
                         self.run_menu = False
                         self.run_instruction = True
                         self.instructions()
+                    if rect_highscore.collidepoint(event.pos):
+                        self.run_menu = False
+                        self.run_highscore = True
+                        self.highscore()
                     if rect_exit.collidepoint(event.pos):
                         sys.exit(0)
             pygame.display.update()
@@ -282,6 +291,37 @@ class Game:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if rect_menu_hover.collidepoint(event.pos):
                         self.run_instruction = False
+                        self.run_menu = True
+                        self.main_menu()
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    self.run_game = False
+                    sys.exit(0)
+            pygame.display.update()
+    def highscore(self):
+        font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 40)
+        list_highscore = get_top_ten()
+        while self.run_highscore:
+            BLACK = (0, 0 ,0)
+            self.screen.fill(BLACK)
+            i = 0
+            self.screen.blit(self.images.img_highscore_title, (100, 10))
+            self.screen.blit(self.images.img_menu, (250, 800))
+            rect_menu_hover = self.images.img_menu_hover.get_rect()
+            rect_menu_hover.x = 250
+            rect_menu_hover.y = 800
+            for element in list_highscore:
+                name, score = element
+                if score > 0:
+                    text_ui = font.render(f"{name} : {score}", True, (255, 255, 255))
+                    self.screen.blit(text_ui, (300, 200 + i))
+                    i += 60
+            if rect_menu_hover.collidepoint(pygame.mouse.get_pos()):
+                self.screen.blit(self.images.img_menu_hover, rect_menu_hover)
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if rect_menu_hover.collidepoint(event.pos):
+                        self.run_highscore = False
                         self.run_menu = True
                         self.main_menu()
                 if event.type == pygame.QUIT:
@@ -385,7 +425,7 @@ class Game:
             pygame.display.update()
         self.time_start += pygame.time.get_ticks() - pause_start
     def game_over(self):
-        font = pygame.font.Font(None, 95)
+        font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 50)
         empty = font.render("Enter user", True, (0, 0, 0))
         text = ""
         data = {}

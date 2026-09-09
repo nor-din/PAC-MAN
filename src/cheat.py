@@ -3,3 +3,4 @@ class Cheat:
         self.frezz = False
         self.invincible = False
         self.speed = False
+        self.skip_level = False

@@ -52,6 +52,8 @@ class Images:
         self.img_speed = pygame.transform.scale(self.img_speed, (250, 70))
         self.img_instructions_title = pygame.image.load("assets/images/instructions_title.png")
         self.img_instructions_title = pygame.transform.scale(self.img_instructions_title, (800, 200))
+        self.img_highscore_title = pygame.image.load("assets/images/highscore_title.png")
+        self.img_highscore_title = pygame.transform.scale(self.img_highscore_title, (800, 200))
         self.img_controls = pygame.image.load("assets/images/controls.png")
         self.img_controls = pygame.transform.scale(self.img_controls, (1000, 500))
         self.img_box = pygame.image.load("assets/images/box.png")
