@@ -342,7 +342,7 @@ class Game:
                     self.player.move_right(self.maze)
             if self.step_ghost % Game.config_dict.get("ghost_speed_ticks", 20) == 0:
                 if not self.cheat.frezz:
-                    Ghost.update_shared_mode(pygame.time.get_ticks())
+                    Ghost.update_shared_mode(pygame.time.get_ticks(), self.level)
                     for ghost in self.ghosts:
                         ghost.workflow(self.maze, self.player)
                         

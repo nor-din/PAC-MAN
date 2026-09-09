@@ -66,12 +66,18 @@ class Ghost:
     last_mode_switch_time = 0
 
     @classmethod
-    def update_shared_mode(cls, current_time):
+    def update_shared_mode(cls, current_time, level=1):
         elapsed = current_time - cls.last_mode_switch_time
-        if cls.shared_mode == "scatter" and elapsed > 7000:
+        base_scatter = src.game.Game.config_dict.get("scatter_duration_ms", 7000)
+        # Decrease scatter duration by 500ms per level, minimum 1000ms
+        scatter_duration = max(1000, base_scatter - (level - 1) * 500)
+        
+        chase_duration = src.game.Game.config_dict.get("chase_duration_ms", 20000)
+        
+        if cls.shared_mode == "scatter" and elapsed > scatter_duration:
             cls.shared_mode = "chase"
             cls.last_mode_switch_time = current_time
-        elif cls.shared_mode == "chase" and elapsed > 20000:
+        elif cls.shared_mode == "chase" and elapsed > chase_duration:
             cls.shared_mode = "scatter"
             cls.last_mode_switch_time = current_time
 

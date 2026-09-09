@@ -10,7 +10,11 @@ def is_valid(key, value):
         "points_per_pacgum",
         "points_per_super_pacgum",
         "points_per_ghost",
-        "level_max_time"
+        "level_max_time",
+        "ghost_respawn_ms",
+        "super_pacgum_duration_ms",
+        "scatter_duration_ms",
+        "chase_duration_ms"
     }
 
     if key == "highscore_filename":
@@ -76,7 +80,9 @@ def parse_config(filename: str):
 
         # Timers
         "ghost_respawn_ms": 8000,
-        "super_pacgum_duration_ms": 7000
+        "super_pacgum_duration_ms": 7000,
+        "scatter_duration_ms": 7000,
+        "chase_duration_ms": 20000
     }
 
     allowed_keys = {
@@ -86,8 +92,12 @@ def parse_config(filename: str):
         "points_per_super_pacgum",
         "points_per_ghost",
         "seed",
-        "level_max_time"
-        }
+        "level_max_time",
+        "ghost_respawn_ms",
+        "super_pacgum_duration_ms",
+        "scatter_duration_ms",
+        "chase_duration_ms"
+    }
 
     try:
         with open(filename, 'r') as config_file:
