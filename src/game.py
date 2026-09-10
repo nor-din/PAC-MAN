@@ -448,6 +448,7 @@ class Game:
     def game_over(self):
         font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 50)
         empty = font.render("Enter user", True, (0, 0, 0))
+        score_ui = font.render(f"SCORE: {self.player.score}", True, (255, 255, 255))
         text = ""
         data = {}
         hs_file = Game.config_dict.get("highscore_filename", "highscore.json")
@@ -462,6 +463,7 @@ class Game:
             self.screen.fill(BLACK)
             self.screen.blit(self.images.img_game_over, (175, 20))
             self.screen.blit(self.images.img_box, (250, 500))
+            self.screen.blit(score_ui, (370, 425))
             rect_save = self.images.img_save.get_rect()
             rect_save.x = 250
             rect_save.y = 700
@@ -504,6 +506,7 @@ class Game:
     def victory(self):
         font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 50)
         empty = font.render("Enter user", True, (0, 0, 0))
+        score_ui = font.render(f"SCORE: {self.player.score}", True, (255, 255, 255))
         text = ""
         data = {}
         hs_file = Game.config_dict.get("highscore_filename", "highscore.json")
@@ -516,8 +519,9 @@ class Game:
         while self.run_victory:
             BLACK = (0, 0 ,0)
             self.screen.fill(BLACK)
-            self.screen.blit(self.images.img_box, (250, 500))
             self.screen.blit(self.images.img_victory, (10, 10))
+            self.screen.blit(self.images.img_box, (250, 500))
+            self.screen.blit(score_ui, (370, 425))
             rect_save = self.images.img_save.get_rect()
             rect_save.x = 250
             rect_save.y = 700
