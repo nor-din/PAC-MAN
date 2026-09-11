@@ -68,11 +68,11 @@ class Ghost:
     @classmethod
     def update_shared_mode(cls, current_time, level=1):
         elapsed = current_time - cls.last_mode_switch_time
-        base_scatter = src.game.Game.config_dict.get("scatter_duration_ms", 7000)
+        base_scatter = src.game.Game.config.scatter_duration_ms
         # Decrease scatter duration by 500ms per level, minimum 1000ms
         scatter_duration = max(1000, base_scatter - (level - 1) * 500)
         
-        chase_duration = src.game.Game.config_dict.get("chase_duration_ms", 20000)
+        chase_duration = src.game.Game.config.chase_duration_ms
         
         if cls.shared_mode == "scatter" and elapsed > scatter_duration:
             cls.shared_mode = "chase"
@@ -106,7 +106,10 @@ class Ghost:
     def update_visual(self):
         target_x = self.col * 40
         target_y = self.row * 40
-        speed = 40 / src.game.Game.config_dict["ghost_speed_ticks"]
+        
+        base_ticks = src.game.Game.config.ghost_speed_ticks
+        current_ticks = int(base_ticks * 1.25) if self.is_edible else base_ticks
+        speed = 40 / current_ticks
         
         if self.visual_x < target_x:
             self.visual_x = min(target_x, self.visual_x + speed)

@@ -1,6 +1,4 @@
 {
-  "maze_rows": 5,
-  "maze_cols": 5,
-  "level_max_time": 90,
+  "level_max_time": 50,
   "ghost_speed_ticks": 20
 }

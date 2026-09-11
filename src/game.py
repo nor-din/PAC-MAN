@@ -50,16 +50,16 @@ KEY_TO_CHAR = {
     pygame.K_9: "9",
 }
 class Game:
-    config_dict = {}
+    config = None
     def __init__(self, screen):
         self.screen = screen
         self.images = Images()
         self.cheat = Cheat()
         self.level = 1
         self.gen = MazeGenerator(
-            size=(Game.config_dict.get("maze_rows", 15), Game.config_dict.get("maze_cols", 15)),
+            size=(15, 15),
             perfect=False,
-            seed=Game.config_dict.get("seed", None)
+            seed=Game.config.seed
         )
         self.maze = Maze(self.gen.maze)
         self.middel_row = self.maze.rows // 2
@@ -77,7 +77,7 @@ class Game:
         self._place_ghosts()
         self._place_pacgums()
         self.time_start = 0
-        self.time = Game.config_dict.get("level_max_time", 90)
+        self.time = Game.config.level_max_time
         self.running = True
         self.run_menu = True
         self.run_game = True
@@ -89,20 +89,20 @@ class Game:
         self.current_dir = None
         self.step_ghost = 0
         self.step_player = 0
-        self.save_ticks = Game.config_dict.get("ghost_speed_ticks", 20)
-        self.move_player = Game.config_dict.get("player_default_move", 1)
+        self.save_ticks = Game.config.ghost_speed_ticks
+        self.move_player = Game.config.player_default_move
         self.edible_until = 0
-        self.points_ghost = Game.config_dict.get("points_per_ghost", 200)
-        self.respawn_ms = Game.config_dict.get("ghost_respawn_ms", 8000)
+        self.points_ghost = Game.config.points_per_ghost
+        self.respawn_ms = Game.config.ghost_respawn_ms
     def _place_pacgums(self):
         for row in range(self.maze.rows):
             for col in range(self.maze.cols):
                 if not (self.player.row == row and self.player.col == col):
                     if not self.maze.is_blocked(row, col):
                         if (row, col) in self.corners:
-                            self.pacgums.append(Pacgum(row, col, True, points=Game.config_dict.get("points_per_super_pacgum", 50)))
+                            self.pacgums.append(Pacgum(row, col, True, points=Game.config.points_per_super_pacgum))
                         else:
-                            self.pacgums.append(Pacgum(row, col, points=Game.config_dict.get("points_per_pacgum", 10)))
+                            self.pacgums.append(Pacgum(row, col, points=Game.config.points_per_pacgum))
     def _place_ghosts(self):
         row, col = self.corners[0]
         if not self.maze.is_blocked(row, col):
@@ -123,7 +123,7 @@ class Game:
         self.ghosts = []
         self._place_ghosts()
         self.time_start = pygame.time.get_ticks()
-        Game.config_dict["ghost_speed_ticks"] = self.save_ticks
+        Game.config.ghost_speed_ticks = self.save_ticks
         self.current_dir = None
         self.step = 0
         self.edible_until = 0
@@ -137,15 +137,15 @@ class Game:
         self.cheat.skip_level = False
         self.level += 1
         
-        current_ticks = Game.config_dict.get("ghost_speed_ticks", 20)
-        Game.config_dict["ghost_speed_ticks"] = max(5, current_ticks - 2)
+        current_ticks = Game.config.ghost_speed_ticks
+        Game.config.ghost_speed_ticks = max(5, current_ticks - 2)
 
-        seed = Game.config_dict.get("seed", None)
+        seed = Game.config.seed
         if seed is not None:
             seed = f"{seed}_{self.level}"
             
         self.gen = MazeGenerator(
-            size=(Game.config_dict.get("maze_rows", 15), Game.config_dict.get("maze_cols", 15)),
+            size=(15, 15),
             perfect=False,
             seed=seed
         )
@@ -209,7 +209,7 @@ class Game:
             self.pacgums.remove(p)
             self.player.score += p.points
             if p.is_super:
-                self.edible_until = pygame.time.get_ticks() + Game.config_dict.get("super_pacgum_duration_ms", 7000)
+                self.edible_until = pygame.time.get_ticks() + Game.config.super_pacgum_duration_ms
                 for ghost in self.ghosts:
                     if ghost.current_dir:
                         ghost.current_dir = (-ghost.current_dir[0], -ghost.current_dir[1])
@@ -419,10 +419,10 @@ class Game:
                         self.cheat.speed = not self.cheat.speed
                         if self.cheat.speed:
                             self.step_player = 0
-                            self.move_player = Game.config_dict.get("player_cheat_move", 2)
+                            self.move_player = Game.config.player_cheat_move
                         else:
                             self.step_player = 0
-                            self.move_player = Game.config_dict.get("player_default_move", 1)
+                            self.move_player = Game.config.player_default_move
             if keys[pygame.K_UP] and self.maze.can_move(self.player.row, self.player.col, "up"):
                 self.current_dir = "up" 
             if keys[pygame.K_DOWN] and self.maze.can_move(self.player.row, self.player.col, "down"):
@@ -433,7 +433,7 @@ class Game:
                 self.current_dir = "right"
             self.step_ghost += 1
             self.step_player += self.move_player
-            if self.step_player % Game.config_dict.get("player_speed_ticks", 10) == 0:
+            if self.step_player % Game.config.player_speed_ticks == 0:
                 if self.current_dir == "up":
                     self.player.move_up(self.maze)
                 if self.current_dir == "down":
@@ -442,7 +442,13 @@ class Game:
                     self.player.move_left(self.maze)
                 if self.current_dir == "right":
                     self.player.move_right(self.maze)
-            if self.step_ghost % Game.config_dict.get("ghost_speed_ticks", 20) == 0:
+            # Check if ghosts are edible to apply 20% slowdown (multiply ticks by 1.25)
+            now_ticks = pygame.time.get_ticks()
+            are_ghosts_edible = now_ticks < self.edible_until
+            base_ghost_ticks = Game.config.ghost_speed_ticks
+            current_ghost_ticks = int(base_ghost_ticks * 1.25) if are_ghosts_edible else base_ghost_ticks
+
+            if self.step_ghost % current_ghost_ticks == 0:
                 if not self.cheat.frezz:
                     Ghost.update_shared_mode(pygame.time.get_ticks(), self.level)
                     for ghost in self.ghosts:
@@ -490,7 +496,7 @@ class Game:
         score_ui = font.render(f"SCORE: {self.player.score}", True, (255, 255, 255))
         text = ""
         data = {}
-        hs_file = Game.config_dict.get("highscore_filename", "highscore.json")
+        hs_file = Game.config.highscore_filename
         shift = False
         try:
             with open(hs_file, "r") as f:
@@ -524,7 +530,7 @@ class Game:
                             data[text] = max(data[text], self.player.score)
                         else:
                             data[text] = self.player.score
-                        data = dict(sorted(data.items(), key=lambda item: item[1], reverse=True))
+                        data = dict(list(sorted(data.items(), key=lambda item: item[1], reverse=True))[:10])
                         with open(hs_file, "w") as f:
                             json.dump(data, f, indent=2)
                         self.run_game_over = False
@@ -555,7 +561,7 @@ class Game:
         score_ui = font.render(f"SCORE: {self.player.score}", True, (255, 255, 255))
         text = ""
         data = {}
-        hs_file = Game.config_dict.get("highscore_filename", "highscore.json")
+        hs_file = Game.config.highscore_filename
         shift = False
         try:
             with open(hs_file, "r") as f:
@@ -589,7 +595,7 @@ class Game:
                             data[text] = max(data[text], self.player.score)
                         else:
                             data[text] = self.player.score
-                        data = dict(sorted(data.items(), key=lambda item: item[1], reverse=True))
+                        data = dict(list(sorted(data.items(), key=lambda item: item[1], reverse=True))[:10])
                         with open(hs_file, "w") as f:
                             json.dump(data, f, indent=2)
                         self.run_victory = False

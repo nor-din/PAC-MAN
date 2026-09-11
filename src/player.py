@@ -7,7 +7,7 @@ class Player:
         self.col = col
         self.visual_x = col * 40
         self.visual_y = row * 40
-        self.lives = src.game.Game.config_dict["lives"]
+        self.lives = src.game.Game.config.lives
         self.score = 0
         self.direction = "right"
         self.counter = 0
@@ -17,7 +17,7 @@ class Player:
     def update_visual(self, speed_multiplier):
         target_x = self.col * 40
         target_y = self.row * 40
-        speed = (40 / src.game.Game.config_dict["player_speed_ticks"]) * speed_multiplier
+        speed = (40 / src.game.Game.config.player_speed_ticks) * speed_multiplier
         
         if self.visual_x < target_x:
             self.visual_x = min(target_x, self.visual_x + speed)

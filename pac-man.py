@@ -10,7 +10,7 @@ def main() -> None:
     config = parse_config(config_file)
     
     from src.game import Game
-    Game.config_dict = config
+    Game.config = config
     pygame.init()
 
     screen = pygame.display.set_mode((1000, 1000))
