@@ -10,7 +10,45 @@ from src.ui import Images
 from src.cheat import Cheat
 from src.highscore import get_top_ten
 
+KEY_TO_CHAR = {
+    pygame.K_a: "a",
+    pygame.K_b: "b",
+    pygame.K_c: "c",
+    pygame.K_d: "d",
+    pygame.K_e: "e",
+    pygame.K_f: "f",
+    pygame.K_g: "g",
+    pygame.K_h: "h",
+    pygame.K_i: "i",
+    pygame.K_j: "j",
+    pygame.K_k: "k",
+    pygame.K_l: "l",
+    pygame.K_m: "m",
+    pygame.K_n: "n",
+    pygame.K_o: "o",
+    pygame.K_p: "p",
+    pygame.K_q: "q",
+    pygame.K_r: "r",
+    pygame.K_s: "s",
+    pygame.K_t: "t",
+    pygame.K_u: "u",
+    pygame.K_v: "v",
+    pygame.K_w: "w",
+    pygame.K_x: "x",
+    pygame.K_y: "y",
+    pygame.K_z: "z",
 
+    pygame.K_0: "0",
+    pygame.K_1: "1",
+    pygame.K_2: "2",
+    pygame.K_3: "3",
+    pygame.K_4: "4",
+    pygame.K_5: "5",
+    pygame.K_6: "6",
+    pygame.K_7: "7",
+    pygame.K_8: "8",
+    pygame.K_9: "9",
+}
 class Game:
     config_dict = {}
     def __init__(self, screen):
@@ -138,8 +176,7 @@ class Game:
         self.step_ghost = 0
         self.edible_until = 0
     def draw(self):
-        BLACK = (0, 0 ,0)
-        self.screen.fill(BLACK)
+        self.screen.blit(self.images.img_background, (0, 0))
         self.maze.draw(self.screen)
         font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 50)
         score_ui = font.render(f"SCORE: {self.player.score}", True, (255, 255, 255))
@@ -227,8 +264,7 @@ class Game:
         pygame.display.update()
     def main_menu(self):
         while self.run_menu:
-            BLACK = (0, 0 ,0)
-            self.screen.fill(BLACK)
+            self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_title, (250, 10))
             rect_start = self.images.img_start.get_rect()
             rect_start_hover = self.images.img_start_hover.get_rect()
@@ -287,15 +323,18 @@ class Game:
                         sys.exit(0)
             pygame.display.update()
     def instructions(self):
+        space = False
         while self.run_instruction:
-            BLACK = (0, 0 ,0)
-            self.screen.fill(BLACK)
+            self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_instructions_title, (100, 10))
-            self.screen.blit(self.images.img_controls, (0, 250))
             self.screen.blit(self.images.img_menu, (250, 800))
             rect_menu_hover = self.images.img_menu_hover.get_rect()
             rect_menu_hover.x = 250
             rect_menu_hover.y = 800
+            if not space:
+                self.screen.blit(self.images.img_controls, (0, 250))
+            if space:
+                self.screen.blit(self.images.img_rules, (125, 250))
             if rect_menu_hover.collidepoint(pygame.mouse.get_pos()):
                 self.screen.blit(self.images.img_menu_hover, rect_menu_hover)
             for event in pygame.event.get():
@@ -304,6 +343,9 @@ class Game:
                         self.run_instruction = False
                         self.run_menu = True
                         self.main_menu()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        space = not space
                 if event.type == pygame.QUIT:
                     self.running = False
                     self.run_game = False
@@ -315,8 +357,7 @@ class Game:
         empty_ui = font_empty.render("No High Score Yet!", True, (255, 255, 255))
         list_highscore = get_top_ten()
         while self.run_highscore:
-            BLACK = (0, 0 ,0)
-            self.screen.fill(BLACK)
+            self.screen.blit(self.images.img_background, (0, 0))
             i = 0
             self.screen.blit(self.images.img_highscore_title, (100, 10))
             self.screen.blit(self.images.img_menu, (250, 800))
@@ -355,7 +396,6 @@ class Game:
         rect_pause.x = 5
         rect_pause.y = 5
         while self.run_game:
-            clock.tick(Game.config_dict.get("fps", 60))
             keys = pygame.key.get_pressed()
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
@@ -423,8 +463,7 @@ class Game:
         rect_menu_hover.x = 275
         rect_menu_hover.y = 650
         while self.run_pause_menu:
-            BLACK = (0, 0 ,0)
-            self.screen.fill(BLACK)
+            self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_pause_title, (125, -75))
             self.screen.blit(self.images.img_continue, (275, 350))
             self.screen.blit(self.images.img_menu, (275, 650))
@@ -452,6 +491,7 @@ class Game:
         text = ""
         data = {}
         hs_file = Game.config_dict.get("highscore_filename", "highscore.json")
+        shift = False
         try:
             with open(hs_file, "r") as f:
                 data = json.load(f)
@@ -459,8 +499,7 @@ class Game:
             with open(hs_file, "w") as f:
                 json.dump({}, f, indent=2)
         while self.run_game_over:
-            BLACK = (0, 0 ,0)
-            self.screen.fill(BLACK)
+            self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_game_over, (175, 20))
             self.screen.blit(self.images.img_box, (250, 500))
             self.screen.blit(score_ui, (370, 425))
@@ -491,13 +530,20 @@ class Game:
                         self.run_game_over = False
                         self.run_menu = True
                         self.main_menu()
-                if event.type == pygame.TEXTINPUT:
-                    if len(text) < 10 and (event.text.isalnum() or event.text == " "):
-                        text += event.text
                 if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LSHIFT:
+                        shift = not shift
                     if event.key == pygame.K_BACKSPACE:
                         text = text[:-1]
-            text = text.lower()
+                    elif event.key in KEY_TO_CHAR:
+                        if len(text) < 10:
+                            if not shift:
+                                text += KEY_TO_CHAR[event.key]
+                            else:
+                              text += KEY_TO_CHAR[event.key].upper()  
+                    elif event.key == pygame.K_SPACE:
+                        if len(text) < 10:
+                            text += " "
             if len(text) == 0:
                 self.screen.blit(empty, (300, 545))
             if len(text) > 0:
@@ -510,6 +556,7 @@ class Game:
         text = ""
         data = {}
         hs_file = Game.config_dict.get("highscore_filename", "highscore.json")
+        shift = False
         try:
             with open(hs_file, "r") as f:
                 data = json.load(f)
@@ -517,8 +564,7 @@ class Game:
             with open(hs_file, "w") as f:
                 json.dump({}, f, indent=2)
         while self.run_victory:
-            BLACK = (0, 0 ,0)
-            self.screen.fill(BLACK)
+            self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_victory, (10, 10))
             self.screen.blit(self.images.img_box, (250, 500))
             self.screen.blit(score_ui, (370, 425))
@@ -549,13 +595,20 @@ class Game:
                         self.run_victory = False
                         self.run_menu = True
                         self.main_menu()
-                if event.type == pygame.TEXTINPUT:
-                    if len(text) < 10 and (event.text.isalnum() or event.text == " "):
-                        text += event.text
                 if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LSHIFT:
+                        shift = not shift
                     if event.key == pygame.K_BACKSPACE:
                         text = text[:-1]
-            text = text.lower()
+                    elif event.key in KEY_TO_CHAR:
+                        if len(text) < 10:
+                            if not shift:
+                                text += KEY_TO_CHAR[event.key]
+                            else:
+                              text += KEY_TO_CHAR[event.key].upper()  
+                    elif event.key == pygame.K_SPACE:
+                        if len(text) < 10:
+                            text += " "
             if len(text) == 0:
                 self.screen.blit(empty, (300, 545))
             if len(text) > 0:
