@@ -21,15 +21,15 @@ class ConfigError(Exception):
 
 class GameConfig(BaseModel):
     # --- User Modifiable Settings ---
-    highscore_filename: str = Field(default="highscore.json", min_length=1)
     lives: int = Field(default=3, gt=0, lt=99)
     points_per_pacgum: int = Field(default=10, gt=0, le=1000000)
     points_per_super_pacgum: int = Field(default=50, gt=0, le=1000000)
     points_per_ghost: int = Field(default=200, gt=0, le=1000000)
     seed: Union[int, float, str, None] = Field(default=None)
     level_max_time: int = Field(default=90, gt=0, le=3600)
-    
+
     # --- Internal / Dev-Only Settings ---
+    highscore_filename: str = Field(default="highscore.json")
     ghost_respawn_ms: int = Field(default=8000, gt=0, le=3600000)
     super_pacgum_duration_ms: int = Field(default=7000, gt=0, le=3600000)
     scatter_duration_ms: int = Field(default=7000, gt=0, le=3600000)
@@ -39,21 +39,6 @@ class GameConfig(BaseModel):
     ghost_speed_ticks: int = Field(default=30, gt=0)
     player_default_move: int = Field(default=1, gt=0)
     player_cheat_move: int = Field(default=2, gt=0)
-
-    @field_validator('highscore_filename')
-    @classmethod
-    def validate_highscore_filename(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError('Highscore filename cannot be empty whitespace')
-        try:
-            path = Path(v)
-            if path.exists() and not path.is_file():
-                raise ValueError('Highscore path is not a file')
-            if not path.parent.exists():
-                raise ValueError('Highscore directory does not exist')
-        except Exception as e:
-            raise ValueError(f'Invalid path: {e}')
-        return v
 
 
 def remove_comments(lines):
@@ -65,7 +50,6 @@ def remove_comments(lines):
 
 def parse_config(filename: str) -> GameConfig:
     allowed_user_keys = {
-        "highscore_filename",
         "lives",
         "points_per_pacgum",
         "points_per_super_pacgum",

@@ -1,4 +1,4 @@
 {
-  "level_max_time": 50,
-  "ghost_speed_ticks": 20
+  "level_max_time": 100,
+  "ghost_speed_ticks": 1
 }

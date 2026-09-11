@@ -530,7 +530,7 @@ class Game:
                             data[text] = max(data[text], self.player.score)
                         else:
                             data[text] = self.player.score
-                        data = dict(list(sorted(data.items(), key=lambda item: item[1], reverse=True))[:10])
+                        data = dict(list(sorted(data.items(), key=lambda item: item[1], reverse=True)))
                         with open(hs_file, "w") as f:
                             json.dump(data, f, indent=2)
                         self.run_game_over = False
@@ -595,7 +595,7 @@ class Game:
                             data[text] = max(data[text], self.player.score)
                         else:
                             data[text] = self.player.score
-                        data = dict(list(sorted(data.items(), key=lambda item: item[1], reverse=True))[:10])
+                        data = dict(list(sorted(data.items(), key=lambda item: item[1], reverse=True)))
                         with open(hs_file, "w") as f:
                             json.dump(data, f, indent=2)
                         self.run_victory = False
