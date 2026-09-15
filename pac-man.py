@@ -4,11 +4,12 @@ from src.game_config import parse_config
 
 def main() -> None:
     if len(sys.argv) != 2:
-        raise FileNotFoundError("Missing config-file name: python3 pac-man.py config.json")
+        print("Error: Missing config-file name. Usage: python3 pac-man.py <config.json>", file=sys.stderr)
+        sys.exit(1)
         
     config_file = sys.argv[1]
     config = parse_config(config_file)
-    
+
     from src.game import Game
     Game.config = config
     pygame.init()

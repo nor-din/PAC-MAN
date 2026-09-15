@@ -37,5 +37,5 @@ class Images:
             self.img_rules = pygame.image.load("assets/images/rules.png")
 
         except FileNotFoundError:
-            print("Image not Found")
+            print("Image not Found", file=sys.stderr)
             sys.exit(1)

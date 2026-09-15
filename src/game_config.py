@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import json
+import sys
 from typing import Union
 from pydantic import BaseModel, Field, field_validator, ValidationError
 
@@ -11,7 +12,7 @@ class ConfigError(Exception):
         self.key = key
         self.value = value
         self.message = message
-        
+
         detail = message
         if key is not None:
             detail = f"Configuration Error -> Key: '{key}', Value: '{value}' | Reason: {message}"
@@ -58,6 +59,10 @@ def parse_config(filename: str) -> GameConfig:
         "level_max_time"
     }
 
+    if not filename.endswith('.json'):
+        print(f"Error: File '{filename}' must be of type json (end with .json).", file=sys.stderr)
+        sys.exit(1)
+
     valid_overrides = {}
 
     try:
@@ -75,17 +80,17 @@ def parse_config(filename: str) -> GameConfig:
                     # Use our ConfigError to format the error, but don't raise it
                     error_msg = e.errors()[0].get('msg', 'Validation failed')
                     err = ConfigError(message=error_msg, key=k, value=v)
-                    print(f"Warning: Silently ignoring bad parameter. {err}")
+                    print(f"Warning: Silently ignoring bad parameter. {err}", file=sys.stderr)
                     pass
 
     except FileNotFoundError:
-        print(f"Warning: Config file '{filename}' not found. Using defaults.")
+        print(f"Warning: Config file '{filename}' not found. Using defaults.", file=sys.stderr)
     except PermissionError:
-        print(f"Warning: Permission denied for config file '{filename}'. Using defaults.")
+        print(f"Warning: Permission denied for config file '{filename}'. Using defaults.", file=sys.stderr)
     except json.JSONDecodeError as e:
-        print(f"Warning: Invalid JSON in config file '{filename}': {e}. Using defaults.")
+        print(f"Warning: Invalid JSON in config file '{filename}': {e}. Using defaults.", file=sys.stderr)
     except Exception as e:
-        print(f"Warning: Error reading config file '{filename}': {e}. Using defaults.")
+        print(f"Warning: Error reading config file '{filename}': {e}. Using defaults.", file=sys.stderr)
 
     # Return the final config object containing defaults + valid user overrides
     return GameConfig(**valid_overrides)

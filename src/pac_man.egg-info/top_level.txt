@@ -1,0 +1,10 @@
+__init__
+cheat
+game
+game_config
+ghost
+highscore
+maze
+pacgum
+player
+ui
