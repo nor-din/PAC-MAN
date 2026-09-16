@@ -1,66 +1,49 @@
+from __future__ import annotations
 import pygame
+
 
 class Maze:
     """Maze class for MazeGenerator output."""
 
-    def __init__(self, grid):
+    def __init__(self, grid: list[list[int]]) -> None:
         """Initialize maze."""
         self.grid = grid
         self.rows = len(grid)
         self.cols = len(grid[0])
         self.wallv_img = pygame.transform.scale(
-            pygame.image.load("assets/images/wall_v.png"), (4, 40))
+            pygame.image.load('assets/images/wall_v.png'), (4, 40))
         self.wallh_img = pygame.transform.scale(
-            pygame.image.load("assets/images/wall_h.png"), (40, 4))
-        
+            pygame.image.load('assets/images/wall_h.png'), (40, 4))
 
-    def is_blocked(self, row, col):
+    def is_blocked(self, row: int, col: int) -> bool:
         """Check if cell is fully blocked."""
         return self.grid[row][col] == 15
 
-    def can_move(self, row, col, direction):
+    def can_move(self, row: int, col: int, direction: str) -> bool:
         """Check if can move in direction."""
         cell = self.grid[row][col]
-
-        if direction == "up":
+        if direction == 'up':
             return cell & 1 == 0
-
-        if direction == "right":
+        if direction == 'right':
             return cell & 2 == 0
-
-        if direction == "down":
+        if direction == 'down':
             return cell & 4 == 0
-
-        if direction == "left":
+        if direction == 'left':
             return cell & 8 == 0
-
         return False
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         """Draw maze walls as lines."""
         for row in range(self.rows):
             for col in range(self.cols):
                 cell = self.grid[row][col]
                 x = col * 40 + 200
                 y = row * 40 + 200
-
                 if cell & 1:
                     screen.blit(self.wallh_img, (x, y))
-
                 if cell & 2:
                     screen.blit(self.wallv_img, (x + 40 - 4, y))
-
                 if cell & 4:
                     screen.blit(self.wallh_img, (x, y + 40 - 4))
-
                 if cell & 8:
                     screen.blit(self.wallv_img, (x, y))
-
-    def get_empty_cells(self):
-        """Get all non-blocked cells."""
-        empty = []
-        for row in range(self.rows):
-            for col in range(self.cols):
-                if not self.is_blocked(row, col):
-                    empty.append((row, col))
-        return empty

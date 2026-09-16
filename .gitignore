@@ -10,3 +10,13 @@ env/
 
 
 *.pyc
+
+# Game Data
+highscore.json
+
+# Builds
+dist/
+build/
+*.egg-info/
+.venv/
+uv.lock

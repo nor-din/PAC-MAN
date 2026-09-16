@@ -1,3 +1,4 @@
+from __future__ import annotations
 import sys
 import json
 import pygame
@@ -9,6 +10,7 @@ from src.ghost import Ghost, chase_red, chase_pink, chase_blue, chase_yellow
 from src.ui import Images
 from src.cheat import Cheat
 from src.highscore import get_top_ten
+from src.game_config import GameConfig
 
 KEY_TO_CHAR = {
     pygame.K_a: "a",
@@ -49,12 +51,18 @@ KEY_TO_CHAR = {
     pygame.K_8: "8",
     pygame.K_9: "9",
 }
+
+
 class Game:
-    config = None
-    def __init__(self, screen):
+    config: 'GameConfig'
+
+    def __init__(self, screen: pygame.Surface) -> None:
+        # Engine & Modules
         self.screen = screen
         self.images = Images()
         self.cheat = Cheat()
+
+        # Maze & Level
         self.level = 1
         self.gen = MazeGenerator(
             size=(15, 15),
@@ -62,12 +70,13 @@ class Game:
             seed=Game.config.seed
         )
         self.maze = Maze(self.gen.maze)
-        self.middel_row = self.maze.rows // 2
-        self.middel_col = self.maze.cols // 2
-        if not self.maze.is_blocked(self.middel_row, self.middel_col):
-            self.player = Player(self.middel_row, self.middel_col)
-        self.pacgums = []
-        self.ghosts = []
+        self.middel_row = 7
+        self.middel_col = 7
+
+        # Entities
+        self.player = Player(self.middel_row, self.middel_col)
+        self.pacgums: list[Pacgum] = []
+        self.ghosts: list[Ghost] = []
         self.corners = [
             (0, 0),
             (0, self.maze.cols - 1),
@@ -76,8 +85,8 @@ class Game:
         ]
         self._place_ghosts()
         self._place_pacgums()
-        self.time_start = 0
-        self.time = Game.config.level_max_time
+
+        # Game State loops
         self.running = True
         self.run_menu = True
         self.run_game = True
@@ -86,7 +95,11 @@ class Game:
         self.run_pause_menu = True
         self.run_instruction = True
         self.run_highscore = True
-        self.current_dir = None
+
+        # Game Parameters & Counters
+        self.time_start = 0
+        self.time = Game.config.level_max_time
+        self.current_dir: str | None = None
         self.step_ghost = 0
         self.step_player = 0
         self.save_ticks = Game.config.ghost_speed_ticks
@@ -94,29 +107,47 @@ class Game:
         self.edible_until = 0
         self.points_ghost = Game.config.points_per_ghost
         self.respawn_ms = Game.config.ghost_respawn_ms
-    def _place_pacgums(self):
+
+    def _place_pacgums(self) -> None:
         for row in range(self.maze.rows):
             for col in range(self.maze.cols):
                 if not (self.player.row == row and self.player.col == col):
                     if not self.maze.is_blocked(row, col):
                         if (row, col) in self.corners:
-                            self.pacgums.append(Pacgum(row, col, True, points=Game.config.points_per_super_pacgum))
+                            self.pacgums.append(
+                                Pacgum(
+                                    row,
+                                    col,
+                                    True,
+                                    points=Game.config.points_per_super_pacgum
+                                ))
                         else:
-                            self.pacgums.append(Pacgum(row, col, points=Game.config.points_per_pacgum))
-    def _place_ghosts(self):
-        row, col = self.corners[0]
-        if not self.maze.is_blocked(row, col):
-            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_pink.png", chasing_function=chase_pink))
-        row, col = self.corners[1]
-        if not self.maze.is_blocked(row, col):
-            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_red.png", chasing_function=chase_red))
-        row, col = self.corners[2]
-        if not self.maze.is_blocked(row, col):
-            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_yellow.png", chasing_function=chase_yellow))
-        row, col = self.corners[3]
-        if not self.maze.is_blocked(row, col):
-            self.ghosts.append(Ghost(row, col, "./assets/images/ghost_blue.png", chasing_function=chase_blue))
-    def rest(self):
+                            self.pacgums.append(
+                                Pacgum(
+                                    row,
+                                    col,
+                                    points=Game.config.points_per_pacgum))
+
+    def _place_ghosts(self) -> None:
+        ghosts_config = [
+            ("pink", self.corners[0], chase_pink),
+            ("red", self.corners[1], chase_red),
+            ("yellow", self.corners[2], chase_yellow),
+            ("blue", self.corners[3], chase_blue),
+        ]
+
+        for name, (row, col), chase_func in ghosts_config:
+            new_ghost = Ghost(
+                row,
+                col,
+                f"./assets/images/ghost_{name}.png",
+                chasing_function=chase_func
+            )
+            self.ghosts.append(new_ghost)
+            if name == "red":
+                Ghost.red_ghost = new_ghost
+
+    def rest(self) -> None:
         self.player = Player(self.middel_row, self.middel_col)
         self.pacgums = []
         self._place_pacgums()
@@ -125,7 +156,6 @@ class Game:
         self.time_start = pygame.time.get_ticks()
         Game.config.ghost_speed_ticks = self.save_ticks
         self.current_dir = None
-        self.step = 0
         self.edible_until = 0
         self.cheat.frezz = False
         self.cheat.invincible = False
@@ -133,17 +163,17 @@ class Game:
         self.cheat.skip_level = False
         self.level = 1
 
-    def next_level(self):
+    def next_level(self) -> None:
         self.cheat.skip_level = False
         self.level += 1
-        
+
         current_ticks = Game.config.ghost_speed_ticks
         Game.config.ghost_speed_ticks = max(5, current_ticks - 2)
 
         seed = Game.config.seed
         if seed is not None:
             seed = f"{seed}_{self.level}"
-            
+
         self.gen = MazeGenerator(
             size=(15, 15),
             perfect=False,
@@ -152,7 +182,7 @@ class Game:
         self.maze = Maze(self.gen.maze)
         self.middel_row = self.maze.rows // 2
         self.middel_col = self.maze.cols // 2
-        
+
         self.player.row = self.middel_row
         self.player.col = self.middel_col
         self.player.visual_x = self.middel_col * 40
@@ -160,7 +190,7 @@ class Game:
         self.player.direction = "right"
         self.current_dir = None
         self.step_player = 0
-        
+
         self.pacgums = []
         self.ghosts = []
         self.corners = [
@@ -171,15 +201,17 @@ class Game:
         ]
         self._place_ghosts()
         self._place_pacgums()
-        
+
         self.time_start = pygame.time.get_ticks()
         self.step_ghost = 0
         self.edible_until = 0
-    def draw(self):
+
+    def draw(self) -> None:
         self.screen.blit(self.images.img_background, (0, 0))
         self.maze.draw(self.screen)
         font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 50)
-        score_ui = font.render(f"SCORE: {self.player.score}", True, (255, 255, 255))
+        score_ui = font.render(
+            f"SCORE: {self.player.score}", True, (255, 255, 255))
         lives_ui = font.render(f"x{self.player.lives}", True, (255, 255, 255))
         level_title_ui = font.render("level", True, (255, 255, 255))
         if self.level > 10:
@@ -198,25 +230,33 @@ class Game:
         rect_pause = self.images.img_pause.get_rect()
         rect_pause.x = 5
         rect_pause.y = 5
-        self.screen.blit(self.images.img_pause ,rect_pause)
+        self.screen.blit(self.images.img_pause, rect_pause)
         elapsed = (pygame.time.get_ticks() - self.time_start) // 1000
         time_sec = max(0, (self.time - elapsed))
         time_ui = font.render(f"TIME: {time_sec}", True, (255, 255, 255))
         self.screen.blit(time_ui, (370, 10))
-        eaten = [p for p in self.pacgums
-                 if abs(self.player.visual_x - p.col * 40) < 15 and abs(self.player.visual_y - p.row * 40) < 15]
+        eaten = [
+            p for p in self.pacgums if abs(
+                self.player.visual_x -
+                p.col *
+                40) < 15 and abs(
+                self.player.visual_y -
+                p.row *
+                40) < 15]
         for p in eaten:
             self.pacgums.remove(p)
             self.player.score += p.points
             if p.is_super:
-                self.edible_until = pygame.time.get_ticks() + Game.config.super_pacgum_duration_ms
+                self.edible_until = (pygame.time.get_ticks() +
+                                     Game.config.super_pacgum_duration_ms)
                 for ghost in self.ghosts:
                     if ghost.current_dir:
-                        ghost.current_dir = (-ghost.current_dir[0], -ghost.current_dir[1])
-                        
+                        ghost.current_dir = (
+                            -ghost.current_dir[0], -ghost.current_dir[1])
+
         if len(self.pacgums) == 0 or self.cheat.skip_level:
             self.next_level()
-            
+
         for pacgum in self.pacgums:
             pacgum.draw(self.screen)
         now = pygame.time.get_ticks()
@@ -227,7 +267,11 @@ class Game:
                 continue
             if ghost.is_eaten and now >= ghost.respawn_at:
                 ghost.respawn()
-            if abs(ghost.visual_x - self.player.visual_x) < 20 and abs(ghost.visual_y - self.player.visual_y) < 20:
+            if abs(
+                    ghost.visual_x -
+                    self.player.visual_x) < 20 and abs(
+                    ghost.visual_y -
+                    self.player.visual_y) < 20:
                 if edible:
                     self.player.score += self.points_ghost
                     ghost.is_eaten = True
@@ -262,7 +306,8 @@ class Game:
         if not self.cheat.speed:
             self.screen.blit(self.images.img_off, (30, 700))
         pygame.display.update()
-    def main_menu(self):
+
+    def main_menu(self) -> None:
         while self.run_menu:
             self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_title, (250, 10))
@@ -283,16 +328,21 @@ class Game:
             rect_highscore_hover.y = 400
             self.screen.blit(self.images.img_highscore, rect_highscore)
             if rect_highscore.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_highscore_hover, rect_highscore_hover)
+                self.screen.blit(
+                    self.images.img_highscore_hover,
+                    rect_highscore_hover)
             rect_instructions = self.images.img_instructions.get_rect()
-            rect_instructions_hover = self.images.img_instructions_hover.get_rect()
+            rect_instructions_hover = \
+                self.images.img_instructions_hover.get_rect()
             rect_instructions.x = 330
             rect_instructions.y = 600
             rect_instructions_hover.x = 330
             rect_instructions_hover.y = 600
             self.screen.blit(self.images.img_instructions, rect_instructions)
             if rect_instructions.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_instructions_hover, rect_instructions_hover)
+                self.screen.blit(
+                    self.images.img_instructions_hover,
+                    rect_instructions_hover)
             rect_exit = self.images.img_exit.get_rect()
             rect_exit_hover = self.images.img_exit_hover.get_rect()
             rect_exit.x = 330
@@ -322,7 +372,8 @@ class Game:
                     if rect_exit.collidepoint(event.pos):
                         sys.exit(0)
             pygame.display.update()
-    def instructions(self):
+
+    def instructions(self) -> None:
         space = False
         while self.run_instruction:
             self.screen.blit(self.images.img_background, (0, 0))
@@ -351,10 +402,12 @@ class Game:
                     self.run_game = False
                     sys.exit(0)
             pygame.display.update()
-    def highscore(self):
+
+    def highscore(self) -> None:
         font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 40)
         font_empty = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 70)
-        empty_ui = font_empty.render("No High Score Yet!", True, (255, 255, 255))
+        empty_ui = font_empty.render(
+            "No High Score Yet!", True, (255, 255, 255))
         list_highscore = get_top_ten()
         while self.run_highscore:
             self.screen.blit(self.images.img_background, (0, 0))
@@ -366,13 +419,14 @@ class Game:
             rect_menu_hover.y = 800
             if len(list_highscore) == 0:
                 self.screen.blit(empty_ui, (75, 450))
-            if len(list_highscore) > 0: 
+            if len(list_highscore) > 0:
                 _, first_socre = list_highscore[0]
             for element in list_highscore:
                 name, score = element
                 if first_socre > 0:
                     if score > 0:
-                        text_ui = font.render(f"{name} : {score}", True, (255, 255, 255))
+                        text_ui = font.render(
+                            f"{name} : {score}", True, (255, 255, 255))
                         self.screen.blit(text_ui, (300, 200 + i))
                         i += 60
                 else:
@@ -390,8 +444,8 @@ class Game:
                     self.run_game = False
                     sys.exit(0)
             pygame.display.update()
-    def game(self):
-        clock = pygame.time.Clock()
+
+    def game(self) -> None:
         rect_pause = self.images.img_pause.get_rect()
         rect_pause.x = 5
         rect_pause.y = 5
@@ -423,13 +477,17 @@ class Game:
                         else:
                             self.step_player = 0
                             self.move_player = Game.config.player_default_move
-            if keys[pygame.K_UP] and self.maze.can_move(self.player.row, self.player.col, "up"):
-                self.current_dir = "up" 
-            if keys[pygame.K_DOWN] and self.maze.can_move(self.player.row, self.player.col, "down"):
+            if keys[pygame.K_UP] and self.maze.can_move(
+                    self.player.row, self.player.col, "up"):
+                self.current_dir = "up"
+            if keys[pygame.K_DOWN] and self.maze.can_move(
+                    self.player.row, self.player.col, "down"):
                 self.current_dir = "down"
-            if keys[pygame.K_LEFT] and self.maze.can_move(self.player.row, self.player.col, "left"):
+            if keys[pygame.K_LEFT] and self.maze.can_move(
+                    self.player.row, self.player.col, "left"):
                 self.current_dir = "left"
-            if keys[pygame.K_RIGHT] and self.maze.can_move(self.player.row, self.player.col, "right"):
+            if keys[pygame.K_RIGHT] and self.maze.can_move(
+                    self.player.row, self.player.col, "right"):
                 self.current_dir = "right"
             self.step_ghost += 1
             self.step_player += self.move_player
@@ -442,25 +500,30 @@ class Game:
                     self.player.move_left(self.maze)
                 if self.current_dir == "right":
                     self.player.move_right(self.maze)
-            # Check if ghosts are edible to apply 20% slowdown (multiply ticks by 1.25)
+            # Check if ghosts are edible to apply 20% slowdown (multiply ticks
+            # by 1.25)
             now_ticks = pygame.time.get_ticks()
             are_ghosts_edible = now_ticks < self.edible_until
             base_ghost_ticks = Game.config.ghost_speed_ticks
-            current_ghost_ticks = int(base_ghost_ticks * 1.25) if are_ghosts_edible else base_ghost_ticks
+            current_ghost_ticks = int(
+                base_ghost_ticks *
+                1.25) if are_ghosts_edible else base_ghost_ticks
 
             if self.step_ghost % current_ghost_ticks == 0:
                 if not self.cheat.frezz:
-                    Ghost.update_shared_mode(pygame.time.get_ticks(), self.level)
+                    Ghost.update_shared_mode(
+                        pygame.time.get_ticks(), self.level)
                     for ghost in self.ghosts:
                         ghost.workflow(self.maze, self.player)
-                        
+
             if not self.cheat.frezz:
                 for ghost in self.ghosts:
                     ghost.update_visual()
             self.player.update_visual(self.move_player)
             self.player.invincible = self.cheat.invincible
             self.draw()
-    def pause_menu(self):
+
+    def pause_menu(self) -> None:
         pause_start = pygame.time.get_ticks()
         rect_continue_hover = self.images.img_continue_hover.get_rect()
         rect_continue_hover.x = 275
@@ -474,7 +537,9 @@ class Game:
             self.screen.blit(self.images.img_continue, (275, 350))
             self.screen.blit(self.images.img_menu, (275, 650))
             if rect_continue_hover.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_continue_hover, rect_continue_hover)
+                self.screen.blit(
+                    self.images.img_continue_hover,
+                    rect_continue_hover)
             if rect_menu_hover.collidepoint(pygame.mouse.get_pos()):
                 self.screen.blit(self.images.img_menu_hover, rect_menu_hover)
             for event in pygame.event.get():
@@ -490,10 +555,12 @@ class Game:
                         self.main_menu()
             pygame.display.update()
         self.time_start += pygame.time.get_ticks() - pause_start
-    def game_over(self):
+
+    def game_over(self) -> None:
         font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 50)
         empty = font.render("Enter user", True, (0, 0, 0))
-        score_ui = font.render(f"SCORE: {self.player.score}", True, (255, 255, 255))
+        score_ui = font.render(
+            f"SCORE: {self.player.score}", True, (255, 255, 255))
         text = ""
         data = {}
         hs_file = Game.config.highscore_filename
@@ -530,7 +597,12 @@ class Game:
                             data[text] = max(data[text], self.player.score)
                         else:
                             data[text] = self.player.score
-                        data = dict(list(sorted(data.items(), key=lambda item: item[1], reverse=True)))
+                        data = dict(
+                            list(
+                                sorted(
+                                    data.items(),
+                                    key=lambda item: item[1],
+                                    reverse=True)))
                         with open(hs_file, "w") as f:
                             json.dump(data, f, indent=2)
                         self.run_game_over = False
@@ -546,7 +618,7 @@ class Game:
                             if not shift:
                                 text += KEY_TO_CHAR[event.key]
                             else:
-                              text += KEY_TO_CHAR[event.key].upper()  
+                                text += KEY_TO_CHAR[event.key].upper()
                     elif event.key == pygame.K_SPACE:
                         if len(text) < 10:
                             text += " "
@@ -555,10 +627,12 @@ class Game:
             if len(text) > 0:
                 self.screen.blit(text_ui, (300, 545))
             pygame.display.update()
-    def victory(self):
+
+    def victory(self) -> None:
         font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 50)
         empty = font.render("Enter user", True, (0, 0, 0))
-        score_ui = font.render(f"SCORE: {self.player.score}", True, (255, 255, 255))
+        score_ui = font.render(
+            f"SCORE: {self.player.score}", True, (255, 255, 255))
         text = ""
         data = {}
         hs_file = Game.config.highscore_filename
@@ -595,7 +669,12 @@ class Game:
                             data[text] = max(data[text], self.player.score)
                         else:
                             data[text] = self.player.score
-                        data = dict(list(sorted(data.items(), key=lambda item: item[1], reverse=True)))
+                        data = dict(
+                            list(
+                                sorted(
+                                    data.items(),
+                                    key=lambda item: item[1],
+                                    reverse=True)))
                         with open(hs_file, "w") as f:
                             json.dump(data, f, indent=2)
                         self.run_victory = False
@@ -611,7 +690,7 @@ class Game:
                             if not shift:
                                 text += KEY_TO_CHAR[event.key]
                             else:
-                              text += KEY_TO_CHAR[event.key].upper()  
+                                text += KEY_TO_CHAR[event.key].upper()
                     elif event.key == pygame.K_SPACE:
                         if len(text) < 10:
                             text += " "
@@ -620,7 +699,8 @@ class Game:
             if len(text) > 0:
                 self.screen.blit(text_ui, (300, 545))
             pygame.display.update()
-    def run(self):
-        
+
+    def run(self) -> None:
+
         while self.running:
             self.main_menu()

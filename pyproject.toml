@@ -9,7 +9,6 @@ dependencies = [
     "mypy>=2.3.1",
     "pygame>=2.6.1",
     "pydantic>=2.0.0",
-    "flake8-pyproject"
 ]
 
 [build-system]
@@ -19,8 +18,3 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = ["src"]
 
-[tool.mypy]
-exclude = ["^mazegenerator/"]
-
-[tool.flake8]
-exclude = [".git", "__pycache__", "mazegenerator", ".venv"]
