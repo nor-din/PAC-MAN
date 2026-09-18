@@ -5,6 +5,20 @@ from src.game_config import parse_config
 
 
 def main() -> None:
+    """Entry point for the application.
+
+    Parses command-line arguments, loads the configuration, initializes Pygame,
+    and starts the main game loop.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+
+    Raises:
+        SystemExit: If the configuration file is missing or invalid.
+    """
     if len(sys.argv) != 2 or not sys.argv[1].endswith('.json'):
         print(
             'Error: Missing config-file name.'
@@ -29,7 +43,7 @@ if __name__ == '__main__':
         print('\nGame interrupted (Ctrl+C). Exiting...', file=sys.stderr)
         pygame.quit()
         sys.exit(0)
-    # except Exception as e:
-        # print(f'\nFatal Error: {e}', file=sys.stderr)
-        # pygame.quit()
-        # sys.exit(1)
+    except Exception as e:
+        print(f'\nFatal Error: {e}', file=sys.stderr)
+        pygame.quit()
+        sys.exit(1)

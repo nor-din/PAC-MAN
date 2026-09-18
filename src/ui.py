@@ -4,8 +4,17 @@ import pygame
 
 
 class Images:
+    """Preloads and stores all visual assets for the UI and backgrounds."""
 
     def __init__(self) -> None:
+        """Loads background, menu, and UI images from the assets folder.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         try:
             self.img_title = pygame.image.load('assets/images/title.png')
             self.img_start = pygame.image.load('assets/images/start.png')

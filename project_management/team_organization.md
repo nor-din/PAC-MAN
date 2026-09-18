@@ -3,19 +3,19 @@
 ## Roles and Responsibilities
 Our team structured the development workload by dividing major components between two developers. This allowed us to work in parallel, minimize merge conflicts, and leverage our individual strengths.
 
-### [nodoulah]
-*Replace this section with the tasks Member 1 actually completed from the list below!*
+### nodoulah
 - **Game Loop Setup:** Initialized the Pygame engine, managed the frame rate clock, and set up the core event-listening loop.
 - **Maze Integration:** Connected the required `A-Maze-ing` package to the game state and extracted the layout data for the renderer.
 - **Visuals & Rendering:** Handled the loading of sprites and fonts, mapped the maze generator to pixel coordinates, and rendered all entities.
 - **UI & Menus:** Designed and implemented the Start menu, Pause screen, Game Over/Victory screens, and the active HUD (score, lives, timer).
 - **Player Mechanics:** Programmed Pac-Man's grid-snapping movement, wall collision detection, and the logic for eating standard/super pacgums.
 - **Cheat Codes:** Hooked up the keyboard listeners for developer cheats (Freeze, Invincible, Speed, Skip Level) and applied their effects.
+- ** Deployment to a public gaming platform:** Upload game in itch.io using Pyinsttaler to convert src file to excutable programe, Ex: ./pac-man.py confige.json.
 
-### [nel-mout]
-*Replace this section with the tasks Member 2 actually completed from the list below!*
+
+### nel-mout
 - **Level Progression:** Developed the logic that triggers when a level is cleared, increases difficulty, and requests a new maze layout.
-- **Configuration System:** Built the robust `pydantic` JSON parser, handled command-line argument validation, and ensured faulty configs gracefully fallback without Python tracebacks.
+- **Configuration System:** Built the robust JSON parser, handled command-line argument validation, and ensured faulty configs gracefully fallback without Python tracebacks.
 - **Highscore System:** Created the persistent data logic to read, update, sort, and save player highscores to a local JSON file.
 - **Ghost Movement:** Built the base pathfinding and movement rules for ghosts to navigate intersections within the grid.
 - **Ghost Behaviors:** Implemented the distinct Chase (targeting algorithms), Scatter (patrolling) and Frightened (edible/slowed) states.

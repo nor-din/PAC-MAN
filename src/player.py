@@ -4,25 +4,40 @@ import src.game
 
 
 class Player:
+    """Represents the Pac-Man player entity."""
 
     def __init__(self, row: int, col: int) -> None:
-        # Position
+        """Initializes the player.
+
+        Args:
+            row: Starting grid row.
+            col: Starting grid column.
+
+        Returns:
+            None.
+        """
         self.row = row
         self.col = col
         self.visual_x: float = col * 40.0
         self.visual_y: float = row * 40.0
 
-        # Stats
         self.lives = src.game.Game.config.lives
         self.score = 0
 
-        # Status & Animation
         self.direction = 'right'
         self.counter = 0
         self.index = 0
         self.invincible = False
 
     def update_visual(self, speed_multiplier: float) -> None:
+        """Smoothly interpolates the player's visual pixel position.
+
+        Args:
+            speed_multiplier: Modifies movement speed for visual snapping.
+
+        Returns:
+            None.
+        """
         target_x = self.col * 40
         target_y = self.row * 40
         speed = 40 / src.game.Game.config.player_speed_ticks * speed_multiplier
@@ -36,32 +51,81 @@ class Player:
             self.visual_y = max(target_y, self.visual_y - speed)
 
     def teleport(self, row: int, col: int) -> None:
+        """Instantly moves the player to a new grid location.
+
+        Args:
+            row: New logical row.
+            col: New logical column.
+
+        Returns:
+            None.
+        """
         self.row = row
         self.col = col
         self.visual_x = col * 40
         self.visual_y = row * 40
 
     def move_right(self, maze: src.maze.Maze) -> None:
+        """Attempts to move the player right.
+
+        Args:
+            maze: The maze to check for wall collisions.
+
+        Returns:
+            None.
+        """
         if maze.can_move(self.row, self.col, 'right'):
             self.col += 1
             self.direction = 'right'
 
     def move_left(self, maze: src.maze.Maze) -> None:
+        """Attempts to move the player left.
+
+        Args:
+            maze: The maze to check for wall collisions.
+
+        Returns:
+            None.
+        """
         if maze.can_move(self.row, self.col, 'left'):
             self.col -= 1
             self.direction = 'left'
 
     def move_up(self, maze: src.maze.Maze) -> None:
+        """Attempts to move the player up.
+
+        Args:
+            maze: The maze to check for wall collisions.
+
+        Returns:
+            None.
+        """
         if maze.can_move(self.row, self.col, 'up'):
             self.row -= 1
             self.direction = 'up'
 
     def move_down(self, maze: src.maze.Maze) -> None:
+        """Attempts to move the player down.
+
+        Args:
+            maze: The maze to check for wall collisions.
+
+        Returns:
+            None.
+        """
         if maze.can_move(self.row, self.col, 'down'):
             self.row += 1
             self.direction = 'down'
 
     def draw(self, screen: pygame.Surface) -> None:
+        """Renders the player onto the screen based on their current direction.
+
+        Args:
+            screen: The Pygame surface to draw onto.
+
+        Returns:
+            None.
+        """
         anim_frames = [
             pygame.transform.scale(
                 pygame.image.load(

@@ -52,14 +52,32 @@ KEY_TO_CHAR = {
     pygame.K_8: "8",
     pygame.K_9: "9",
 }
+
+
 class Game:
+    """Controls the entire game flow, entities, and states.
+
+    Attributes:
+        config: Global game configuration.
+        screen: The Pygame display surface.
+        level: The current level of the game.
+    """
+
     config: 'GameConfig'
+
     def __init__(self, screen: pygame.Surface) -> None:
-        # Engine & Modules
+        """Initializes the game state.
+
+        Args:
+            screen: Pygame surface to render the game on.
+
+        Returns:
+            None.
+        """
         self.screen = screen
         self.images = Images()
         self.cheat = Cheat()
-        # Maze & Level
+
         self.level = 1
         self.gen = MazeGenerator(
             size=(15, 15),
@@ -69,7 +87,7 @@ class Game:
         self.maze = Maze(self.gen.maze)
         self.middel_row = 7
         self.middel_col = 7
-        # Entities
+
         self.player = Player(self.middel_row, self.middel_col)
         self.pacgums: list[Pacgum] = []
         self.ghosts: list[Ghost] = []
@@ -79,9 +97,9 @@ class Game:
             (self.maze.rows - 1, 0),
             (self.maze.rows - 1, self.maze.cols - 1)
         ]
-        self._place_ghosts()
-        self._place_pacgums()
-        # Game State loops
+        self.place_ghosts()
+        self.place_pacgums()
+
         self.running = True
         self.run_menu = True
         self.run_game = True
@@ -90,18 +108,30 @@ class Game:
         self.run_pause_menu = True
         self.run_instruction = True
         self.run_highscore = True
-        # Game Parameters & Counters
-        self.time_start = 0
+
+        self.time_start = 0.0
         self.time = Game.config.level_max_time
         self.current_dir: str | None = None
         self.step_ghost = 0
         self.step_player = 0
         self.save_ticks = Game.config.ghost_speed_ticks
         self.move_player = Game.config.player_default_move
-        self.edible_until = 0
+        self.edible_until = 0.0
         self.points_ghost = Game.config.points_per_ghost
-        self.respawn_ms = Game.config.ghost_respawn_ms
-    def _place_pacgums(self) -> None:
+        self.respawn_ms = Game.config.ghost_respawn_ms / 1000.0
+
+    def place_pacgums(self) -> None:
+        """Populates the maze with normal and super pacgums.
+
+        Iterates over the maze grid and places pacgums in valid corridor tiles,
+        except in the center box.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         for row in range(self.maze.rows):
             for col in range(self.maze.cols):
                 if not (self.player.row == row and self.player.col == col):
@@ -120,7 +150,19 @@ class Game:
                                     row,
                                     col,
                                     points=Game.config.points_per_pacgum))
-    def _place_ghosts(self) -> None:
+
+    def place_ghosts(self) -> None:
+        """Instantiates and places the 4 ghosts in the maze corners.
+
+        Assigns Blinky (red), Pinky (pink), Inky (blue), and Clyde (yellow) to
+        their respective corners and links their specific chasing behaviors.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         ghosts_config = [
             ("pink", self.corners[0], chase_pink),
             ("red", self.corners[1], chase_red),
@@ -137,22 +179,46 @@ class Game:
             self.ghosts.append(new_ghost)
             if name == "red":
                 Ghost.red_ghost = new_ghost
+
     def rest(self) -> None:
+        """Resets the level state after losing a life.
+
+        Re-initializes the player position, ghost positions, and resets the
+        pacgums layout and edible timers.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         self.player = Player(self.middel_row, self.middel_col)
         self.pacgums = []
-        self._place_pacgums()
+        self.place_pacgums()
         self.ghosts = []
-        self._place_ghosts()
+        self.place_ghosts()
         self.time_start = time.time()
         Game.config.ghost_speed_ticks = self.save_ticks
         self.current_dir = None
-        self.edible_until = 0
+        self.edible_until = 0.0
         self.cheat.frezz = False
         self.cheat.invincible = False
         self.cheat.speed = False
         self.cheat.skip_level = False
         self.level = 1
+
     def next_level(self) -> None:
+        """Advances the game to the next level.
+
+        Increments the level counter, resets positions, clears pacgums,
+        and generates a new maze using the external maze generator.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         self.cheat.skip_level = False
         self.level += 1
         current_ticks = Game.config.ghost_speed_ticks
@@ -183,12 +249,24 @@ class Game:
             (self.maze.rows - 1, 0),
             (self.maze.rows - 1, self.maze.cols - 1)
         ]
-        self._place_ghosts()
-        self._place_pacgums()
+        self.place_ghosts()
+        self.place_pacgums()
         self.time_start = time.time()
         self.step_ghost = 0
-        self.edible_until = 0
+        self.edible_until = 0.0
+
     def draw(self) -> None:
+        """Renders the static maze background, entities, and active HUD.
+
+        Draws pacgums, ghosts, and the player sprite onto the screen,
+        along with UI elements like score, lives, and time.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         self.screen.blit(self.images.img_background, (0, 0))
         self.maze.draw(self.screen)
         font = pygame.font.Font(None, 75)
@@ -226,8 +304,8 @@ class Game:
             self.pacgums.remove(p)
             self.player.score += p.points
             if p.is_super:
-                self.edible_until = (time.time() +
-                                    Game.config.super_pacgum_duration_ms)
+                dur = Game.config.super_pacgum_duration_ms / 1000.0
+                self.edible_until = time.time() + dur
                 for ghost in self.ghosts:
                     if ghost.current_dir:
                         ghost.current_dir = (
@@ -283,7 +361,19 @@ class Game:
         if not self.cheat.speed:
             self.screen.blit(self.images.img_off, (30, 700))
         pygame.display.update()
+
     def main_menu(self) -> None:
+        """Handles the Main Menu logic and rendering.
+
+        Displays main options to start, view highscores, etc.
+        Listens for mouse clicks on these menu items.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         while self.run_menu:
             self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_title, (250, 10))
@@ -323,7 +413,18 @@ class Game:
                     if collide_p(330, 800, 400, 150):
                         sys.exit(0)
             pygame.display.update()
+
     def instructions(self) -> None:
+        """Displays the game instructions screen.
+
+        Explains controls and rules to the player.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         space = False
         while self.run_instruction:
             self.screen.blit(self.images.img_background, (0, 0))
@@ -335,6 +436,15 @@ class Game:
                 self.screen.blit(self.images.img_rules, (125, 250))
             if collide_p(250, 800, 500, 150):
                 self.screen.blit(self.images.img_menu_hover, (250, 800))
+
+            font = pygame.font.Font(None, 40)
+            if space:
+                page_text = "Page 2/2 - Press SPACE"
+            else:
+                page_text = "Page 1/2 - Press SPACE"
+            text_surf = font.render(page_text, True, (255, 255, 255))
+            self.screen.blit(text_surf, (330, 770))
+
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if collide_p(250, 800, 500, 150):
@@ -349,7 +459,18 @@ class Game:
                     self.run_game = False
                     sys.exit(0)
             pygame.display.update()
+
     def highscore(self) -> None:
+        """Displays the Top 10 highscores.
+
+        Fetches and renders highscores from JSON.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         font = pygame.font.Font(None, 70)
         font_empty = pygame.font.Font(None, 125)
         empty_ui = font_empty.render(
@@ -387,7 +508,19 @@ class Game:
                     self.run_game = False
                     sys.exit(0)
             pygame.display.update()
+
     def game(self) -> None:
+        """Executes the active gameplay loop for a single frame.
+
+        Handles player input, updates entity coordinates, applies cheat codes,
+        and checks win/loss conditions based on collisions and timers.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         while self.run_game:
             keys = pygame.key.get_pressed()
             for event in pygame.event.get():
@@ -439,8 +572,7 @@ class Game:
                     self.player.move_left(self.maze)
                 if self.current_dir == "right":
                     self.player.move_right(self.maze)
-            # Check if ghosts are edible to apply 20% slowdown (multiply ticks
-            # by 1.25)
+
             now_ticks = time.time()
             are_ghosts_edible = now_ticks < self.edible_until
             base_ghost_ticks = Game.config.ghost_speed_ticks
@@ -459,7 +591,18 @@ class Game:
             self.player.update_visual(self.move_player)
             self.player.invincible = self.cheat.invincible
             self.draw()
+
     def pause_menu(self) -> None:
+        """Displays the pause menu.
+
+        Pauses game logic until resumed.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         pause_start = time.time()
         while self.run_pause_menu:
             self.screen.blit(self.images.img_background, (0, 0))
@@ -485,7 +628,18 @@ class Game:
                         self.main_menu()
             pygame.display.update()
         self.time_start += time.time() - pause_start
+
     def game_over(self) -> None:
+        """Handles the Game Over sequence.
+
+        Prompts user for name to save score.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         font = pygame.font.Font(None, 70)
         empty = font.render("Enter user", True, (0, 0, 0))
         score_ui = font.render(
@@ -550,7 +704,18 @@ class Game:
             if len(text) > 0:
                 self.screen.blit(text_ui, (300, 545))
             pygame.display.update()
+
     def victory(self) -> None:
+        """Victory sequence handler.
+
+        Prompts the user to enter their name to save their final score.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         font = pygame.font.Font(None, 70)
         empty = font.render("Enter user", True, (0, 0, 0))
         score_ui = font.render(
@@ -615,6 +780,17 @@ class Game:
             if len(text) > 0:
                 self.screen.blit(text_ui, (300, 545))
             pygame.display.update()
+
     def run(self) -> None:
+        """Main state machine router.
+
+        Routes to active menu or gameplay state.
+
+        Args:
+            None.
+
+        Returns:
+            None.
+        """
         while self.running:
             self.main_menu()

@@ -7,6 +7,11 @@ from pydantic import BaseModel, Field, ValidationError
 
 
 class GameConfig(BaseModel):
+    """Pydantic model for validating the JSON configuration file.
+
+    Contains fields and constraints for level settings, points, and durations.
+    """
+
     lives: int = Field(default=3, gt=0, lt=99)
     points_per_pacgum: int = Field(default=10, gt=0, le=1000000)
     points_per_super_pacgum: int = Field(default=50, gt=0, le=1000000)
@@ -26,6 +31,14 @@ class GameConfig(BaseModel):
 
 
 def remove_comments(lines: list[str]) -> str:
+    """Removes '#' comments from a JSON string.
+
+    Args:
+        lines: A list of string lines from the config file.
+
+    Returns:
+        A single sanitized JSON string.
+    """
     clean_lines = []
     for line in lines:
         clean_lines.append(line.split('#')[0])
@@ -33,6 +46,17 @@ def remove_comments(lines: list[str]) -> str:
 
 
 def parse_config(filename: str) -> GameConfig:
+    """Loads, sanitizes, and validates the config file.
+
+    Args:
+        filename: Path to the JSON configuration file.
+
+    Returns:
+        A validated GameConfig instance with safe fallbacks applied.
+
+    Raises:
+        SystemExit: If configuration fails completely.
+    """
     allowed_user_keys = {
         'lives',
         'points_per_pacgum',
