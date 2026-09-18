@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Utility module providing helper functions for highscore and collisions."""
 import json
 import src.game
 import pygame
@@ -40,3 +40,23 @@ def collide_p(x_surf: int, y_surf: int, w: int, h: int) -> bool:
     if x_surf <= x < x_surf + w and y_surf <= y < y_surf + h:
         return True
     return False
+
+
+def get_maze_seed(base_seed: int | float | str | None, level: int) -> int:
+    """Generates a positive integer seed for the maze generator.
+
+    Combines the base config seed with the current level to ensure each level
+    generates a unique but reproducible maze. If no base seed is provided,
+    returns 0 to trigger random generation.
+
+    Args:
+        base_seed: The seed value from the game configuration, or None.
+        level: The current game level.
+
+    Returns:
+        A positive integer suitable for the MazeGenerator.
+    """
+    if base_seed is None:
+        return 0
+    seed_str = f"{base_seed}_{level}"
+    return sum(ord(c) for c in seed_str)

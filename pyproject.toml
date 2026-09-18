@@ -1,7 +1,7 @@
 [project]
 name = "pac-man"
 version = "0.1.0"
-description = "Add your description here"
+description = "A classic PAC-MAN arcade revival built in Python."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -9,4 +9,8 @@ dependencies = [
     "mypy>=2.3.1",
     "pygame>=2.6.1",
     "pydantic>=2.0.0",
+    "mazegenerator",
 ]
+
+[tool.uv.sources]
+mazegenerator = { path = "mazegenerator-2.1.0-py3-none-any.whl" }

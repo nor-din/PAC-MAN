@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Module for loading graphical assets and rendering UI components."""
 import sys
 import pygame
 
@@ -10,7 +10,7 @@ class Images:
         """Loads background, menu, and UI images from the assets folder.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.

@@ -1,7 +1,8 @@
-from __future__ import annotations
+"""Core game module containing the main loop, state machine, and entities."""
 import sys
 import time
 import json
+
 import pygame
 from mazegenerator import MazeGenerator
 from src.maze import Maze
@@ -10,7 +11,7 @@ from src.pacgum import Pacgum
 from src.ghost import Ghost, chase_red, chase_pink, chase_blue, chase_yellow
 from src.ui import Images
 from src.cheat import Cheat
-from src.utils import get_top_ten, collide_p
+from src.utils import get_top_ten, collide_p, get_maze_seed
 from src.game_config import GameConfig
 
 KEY_TO_CHAR = {
@@ -82,7 +83,7 @@ class Game:
         self.gen = MazeGenerator(
             size=(15, 15),
             perfect=False,
-            seed=Game.config.seed
+            seed=get_maze_seed(Game.config.seed, self.level)
         )
         self.maze = Maze(self.gen.maze)
         self.middel_row = 7
@@ -127,7 +128,7 @@ class Game:
         except in the center box.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -158,7 +159,7 @@ class Game:
         their respective corners and links their specific chasing behaviors.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -177,8 +178,6 @@ class Game:
                 chasing_function=chase_func
             )
             self.ghosts.append(new_ghost)
-            if name == "red":
-                Ghost.red_ghost = new_ghost
 
     def rest(self) -> None:
         """Resets the level state after losing a life.
@@ -187,7 +186,7 @@ class Game:
         pacgums layout and edible timers.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -214,7 +213,7 @@ class Game:
         and generates a new maze using the external maze generator.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -223,13 +222,10 @@ class Game:
         self.level += 1
         current_ticks = Game.config.ghost_speed_ticks
         Game.config.ghost_speed_ticks = max(5, current_ticks - 2)
-        seed = Game.config.seed
-        if seed is not None:
-            seed = f"{seed}_{self.level}"
         self.gen = MazeGenerator(
             size=(15, 15),
             perfect=False,
-            seed=seed
+            seed=get_maze_seed(Game.config.seed, self.level)
         )
         self.maze = Maze(self.gen.maze)
         self.middel_row = self.maze.rows // 2
@@ -262,7 +258,7 @@ class Game:
         along with UI elements like score, lives, and time.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -369,7 +365,7 @@ class Game:
         Listens for mouse clicks on these menu items.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -420,7 +416,7 @@ class Game:
         Explains controls and rules to the player.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -466,7 +462,7 @@ class Game:
         Fetches and renders highscores from JSON.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -516,7 +512,7 @@ class Game:
         and checks win/loss conditions based on collisions and timers.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -598,7 +594,7 @@ class Game:
         Pauses game logic until resumed.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -635,7 +631,7 @@ class Game:
         Prompts user for name to save score.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -711,7 +707,7 @@ class Game:
         Prompts the user to enter their name to save their final score.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -787,7 +783,7 @@ class Game:
         Routes to active menu or gameplay state.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.

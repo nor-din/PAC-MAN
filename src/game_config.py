@@ -1,5 +1,4 @@
-from __future__ import annotations
-'Game constants for easy modification.'
+"""Module for defining and parsing JSON configuration with fallback logic."""
 import json
 import sys
 from typing import Union

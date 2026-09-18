@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Module representing consumable items (pacgums) within the maze."""
 import pygame
 
 

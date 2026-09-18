@@ -1,3 +1,7 @@
+"""Entry point for the PAC-MAN game.
+
+Handles config loading, Pygame initialization, and launches the game loop.
+"""
 import pygame
 import sys
 from src.game import Game
@@ -24,7 +28,7 @@ def main() -> None:
             'Error: Missing config-file name.'
             'Usage: python3 pac-man.py <config.json>',
             file=sys.stderr)
-        sys.exit(1)
+        raise
     config_file: str = sys.argv[1]
     config = parse_config(config_file)
     Game.config = config
@@ -46,4 +50,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(f'\nFatal Error: {e}', file=sys.stderr)
         pygame.quit()
-        sys.exit(1)
+        raise

@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Module for wrapping and rendering the 2D grid from the maze generator."""
 import pygame
 
 

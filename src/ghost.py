@@ -1,16 +1,15 @@
-from __future__ import annotations
-import typing
+"""Module defining the Ghost entities, AI behaviors, and pathfinding."""
 import pygame
 import random
 import src.game
+from typing import Callable
 
-if typing.TYPE_CHECKING:
-    from src.maze import Maze
-    from src.player import Player
+from src.maze import Maze
+from src.player import Player
 
 
 def get_greedy_move(
-        ghost: Ghost,
+        ghost: 'Ghost',
         maze: Maze,
         target_row: int,
         target_col: int,
@@ -36,12 +35,15 @@ def get_greedy_move(
         directions.append((0, -1))
     if maze.can_move(ghost.row, ghost.col, 'right'):
         directions.append((0, 1))
+
     if ghost.current_dir and len(directions) > 1:
         reverse_dir = (-ghost.current_dir[0], -ghost.current_dir[1])
         if reverse_dir in directions:
             directions.remove(reverse_dir)
+
     if not directions:
         return
+
     best_dir = directions[0]
     best_dist = float('-inf') if run_away else float('inf')
     for (dr, dc) in directions:
@@ -54,12 +56,13 @@ def get_greedy_move(
         elif dist < best_dist:
             best_dist = dist
             best_dir = (dr, dc)
+
     ghost.row += best_dir[0]
     ghost.col += best_dir[1]
     ghost.current_dir = best_dir
 
 
-def chase_red(ghost: Ghost, maze: Maze,
+def chase_red(ghost: 'Ghost', maze: Maze,
               player: Player) -> None:
     """Chase behavior for Blinky (Red Ghost).
 
@@ -76,7 +79,7 @@ def chase_red(ghost: Ghost, maze: Maze,
     get_greedy_move(ghost, maze, player.row, player.col)
 
 
-def chase_pink(ghost: Ghost, maze: Maze,
+def chase_pink(ghost: 'Ghost', maze: Maze,
                player: Player) -> None:
     """Chase behavior for Pinky (Pink Ghost).
 
@@ -102,7 +105,7 @@ def chase_pink(ghost: Ghost, maze: Maze,
     get_greedy_move(ghost, maze, player.row + dr, player.col + dc)
 
 
-def chase_yellow(ghost: Ghost, maze: Maze,
+def chase_yellow(ghost: 'Ghost', maze: Maze,
                  player: Player) -> None:
     """Chase behavior for Clyde (Yellow Ghost).
 
@@ -123,42 +126,21 @@ def chase_yellow(ghost: Ghost, maze: Maze,
         get_greedy_move(ghost, maze, player.row, player.col, run_away=True)
 
 
-def chase_blue(ghost: Ghost, maze: Maze,
+def chase_blue(ghost: 'Ghost', maze: Maze,
                player: Player) -> None:
     """Chase behavior for Inky (Blue Ghost).
 
-    Vector targets using player and Blinky.
+    Now simplified to just move randomly.
 
     Args:
-        ghost: The ghost.
-        maze: The maze.
+        ghost: The ghost executing the behavior.
+        maze: The game maze.
         player: The player.
 
     Returns:
         None.
     """
-    if Ghost.red_ghost is None:
-        get_greedy_move(ghost, maze, player.row, player.col)
-        return
-
-    target_row = player.row
-    target_col = player.col
-    if player.direction == 'up':
-        target_row -= 2
-    elif player.direction == 'down':
-        target_row += 2
-    elif player.direction == 'left':
-        target_col -= 2
-    elif player.direction == 'right':
-        target_col += 2
-
-    vector_row = target_row - Ghost.red_ghost.row
-    vector_col = target_col - Ghost.red_ghost.col
-
-    inky_target_row = Ghost.red_ghost.row + 2 * vector_row
-    inky_target_col = Ghost.red_ghost.col + 2 * vector_col
-
-    get_greedy_move(ghost, maze, inky_target_row, inky_target_col)
+    ghost.move_randomly(maze)
 
 
 class Ghost:
@@ -166,17 +148,15 @@ class Ghost:
 
     Attributes:
         shared_mode: The global state ('scatter' or 'chase') shared by ghosts.
-        red_ghost: Reference to Blinky for Inky's vector targeting.
         last_mode_switch_time: Timestamp of the last global state change.
     """
 
     shared_mode = 'scatter'
-    red_ghost: typing.Optional[Ghost] = None
     last_mode_switch_time = 0.0
 
     @classmethod
     def update_shared_mode(
-            cls: type[Ghost],
+            cls,
             current_time: float,
             level: int = 1) -> None:
         """Updates the global scatter/chase mode based on timing.
@@ -188,10 +168,11 @@ class Ghost:
         Returns:
             None.
         """
+        current_time *= 1000
         elapsed = current_time - cls.last_mode_switch_time
-        base_scatter = src.game.Game.config.scatter_duration_ms / 1000.0
+        base_scatter = src.game.Game.config.scatter_duration_ms
         scatter_duration = max(1.0, base_scatter - (level - 1) * 0.5)
-        chase_duration = src.game.Game.config.chase_duration_ms / 1000.0
+        chase_duration = src.game.Game.config.chase_duration_ms
         if cls.shared_mode == 'scatter' and elapsed > scatter_duration:
             cls.shared_mode = 'chase'
             cls.last_mode_switch_time = current_time
@@ -200,8 +181,8 @@ class Ghost:
             cls.last_mode_switch_time = current_time
 
     def __init__(self, row: int, col: int, img_path: str,
-                 chasing_function: typing.Callable[
-                     [Ghost, Maze, Player],
+                 chasing_function: Callable[
+                     ['Ghost', Maze, Player],
                      None] = chase_blue) -> None:
         """Initializes a ghost.
 
@@ -236,7 +217,7 @@ class Ghost:
         Moves visual x/y closer to logical coordinates.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -261,7 +242,7 @@ class Ghost:
         """Resets the ghost to its home corner.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.
@@ -321,7 +302,7 @@ class Ghost:
         if self.is_edible:
             get_greedy_move(self, maze, player.row, player.col, run_away=True)
         elif Ghost.shared_mode == 'scatter':
-            self.move_randomly(maze)
+            get_greedy_move(self, maze, player.row, player.col, run_away=True)
         elif Ghost.shared_mode == 'chase':
             self.chasing_function(self, maze, player)
 

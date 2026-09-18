@@ -1,2 +1,4 @@
 [flake8]
-exclude = .git,__pycache__,mazegenerator,.venv
+exclude =
+    .venv/
+    mazegenerator/

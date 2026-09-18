@@ -11,11 +11,9 @@ debug:
 	uv run python3 -m pdb pac-man.py $(CONFIG)
 
 clean:
-	rm -rf __pycache__ .mypy_cache .pytest_cache venv env .venv dist build *.egg-info
-	rm -f .env highscore.json uv.lock
-	find . -type d -name "__pycache__" -exec rm -rf {} +
-	find . -type f -name "*.py[cod]" -delete
-	find . -type f -name "*.pyo" -delete
+	rm -rf .mypy_cache .venv
+	rm -rf __pycache__ src/__pycache__
+	rm -f *.pyc src/*.pyc
 
 lint:
 	uv run flake8 .

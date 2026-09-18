@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Module managing the Player entity, movement and visual interpolation."""
 import pygame
 import src.game
 
@@ -40,7 +40,9 @@ class Player:
         """
         target_x = self.col * 40
         target_y = self.row * 40
+
         speed = 40 / src.game.Game.config.player_speed_ticks * speed_multiplier
+
         if self.visual_x < target_x:
             self.visual_x = min(target_x, self.visual_x + speed)
         elif self.visual_x > target_x:
@@ -130,24 +132,23 @@ class Player:
             pygame.transform.scale(
                 pygame.image.load(
                     f'assets/images/pac_man_open_{self.direction}.png'),
-                (36,
-                 36)),
+                (36, 36)),
             pygame.transform.scale(
                 pygame.image.load('assets/images/pac_man_close.png'),
-                (36,
-                 36))]
+                (36, 36))
+            ]
+
         inv_frames = [
             pygame.transform.scale(
                 pygame.image.load(
                     f'assets/images/pac_man_open_'
                     f'{self.direction}_invincible.png'),
-                (36,
-                 36)),
+                (36, 36)),
             pygame.transform.scale(
                 pygame.image.load(
                     'assets/images/pac_man_close_invincible.png'),
-                (36,
-                 36))]
+                (36, 36))
+            ]
         self.counter += 1
         if self.counter >= 7:
             self.counter = 0

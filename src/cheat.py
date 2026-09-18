@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Module for managing developer cheat codes and game modifications."""
 
 
 class Cheat:
@@ -15,7 +15,7 @@ class Cheat:
         """Initializes all cheats to False.
 
         Args:
-            None.
+            self: The instance object.
 
         Returns:
             None.

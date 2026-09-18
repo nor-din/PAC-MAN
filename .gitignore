@@ -1,22 +1,8 @@
 __pycache__/
-*.py[cod]
-*.pyo
-.mypy_cache/
-.pytest_cache/
-
-venv/
-env/
-.env
-
-
 *.pyc
 
-# Game Data
-highscore.json
-
-# Builds
-dist/
-build/
-*.egg-info/
 .venv/
-uv.lock
+
+.mypy_cache/
+
+highscore.json
