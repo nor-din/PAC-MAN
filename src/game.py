@@ -1,5 +1,6 @@
 from __future__ import annotations
 import sys
+import time
 import json
 import pygame
 from mazegenerator import MazeGenerator
@@ -9,7 +10,7 @@ from src.pacgum import Pacgum
 from src.ghost import Ghost, chase_red, chase_pink, chase_blue, chase_yellow
 from src.ui import Images
 from src.cheat import Cheat
-from src.highscore import get_top_ten
+from src.utils import get_top_ten, collide_p
 from src.game_config import GameConfig
 
 KEY_TO_CHAR = {
@@ -51,17 +52,13 @@ KEY_TO_CHAR = {
     pygame.K_8: "8",
     pygame.K_9: "9",
 }
-
-
 class Game:
     config: 'GameConfig'
-
     def __init__(self, screen: pygame.Surface) -> None:
         # Engine & Modules
         self.screen = screen
         self.images = Images()
         self.cheat = Cheat()
-
         # Maze & Level
         self.level = 1
         self.gen = MazeGenerator(
@@ -72,7 +69,6 @@ class Game:
         self.maze = Maze(self.gen.maze)
         self.middel_row = 7
         self.middel_col = 7
-
         # Entities
         self.player = Player(self.middel_row, self.middel_col)
         self.pacgums: list[Pacgum] = []
@@ -85,7 +81,6 @@ class Game:
         ]
         self._place_ghosts()
         self._place_pacgums()
-
         # Game State loops
         self.running = True
         self.run_menu = True
@@ -95,7 +90,6 @@ class Game:
         self.run_pause_menu = True
         self.run_instruction = True
         self.run_highscore = True
-
         # Game Parameters & Counters
         self.time_start = 0
         self.time = Game.config.level_max_time
@@ -107,7 +101,6 @@ class Game:
         self.edible_until = 0
         self.points_ghost = Game.config.points_per_ghost
         self.respawn_ms = Game.config.ghost_respawn_ms
-
     def _place_pacgums(self) -> None:
         for row in range(self.maze.rows):
             for col in range(self.maze.cols):
@@ -127,7 +120,6 @@ class Game:
                                     row,
                                     col,
                                     points=Game.config.points_per_pacgum))
-
     def _place_ghosts(self) -> None:
         ghosts_config = [
             ("pink", self.corners[0], chase_pink),
@@ -135,7 +127,6 @@ class Game:
             ("yellow", self.corners[2], chase_yellow),
             ("blue", self.corners[3], chase_blue),
         ]
-
         for name, (row, col), chase_func in ghosts_config:
             new_ghost = Ghost(
                 row,
@@ -146,14 +137,13 @@ class Game:
             self.ghosts.append(new_ghost)
             if name == "red":
                 Ghost.red_ghost = new_ghost
-
     def rest(self) -> None:
         self.player = Player(self.middel_row, self.middel_col)
         self.pacgums = []
         self._place_pacgums()
         self.ghosts = []
         self._place_ghosts()
-        self.time_start = pygame.time.get_ticks()
+        self.time_start = time.time()
         Game.config.ghost_speed_ticks = self.save_ticks
         self.current_dir = None
         self.edible_until = 0
@@ -162,18 +152,14 @@ class Game:
         self.cheat.speed = False
         self.cheat.skip_level = False
         self.level = 1
-
     def next_level(self) -> None:
         self.cheat.skip_level = False
         self.level += 1
-
         current_ticks = Game.config.ghost_speed_ticks
         Game.config.ghost_speed_ticks = max(5, current_ticks - 2)
-
         seed = Game.config.seed
         if seed is not None:
             seed = f"{seed}_{self.level}"
-
         self.gen = MazeGenerator(
             size=(15, 15),
             perfect=False,
@@ -182,7 +168,6 @@ class Game:
         self.maze = Maze(self.gen.maze)
         self.middel_row = self.maze.rows // 2
         self.middel_col = self.maze.cols // 2
-
         self.player.row = self.middel_row
         self.player.col = self.middel_col
         self.player.visual_x = self.middel_col * 40
@@ -190,7 +175,6 @@ class Game:
         self.player.direction = "right"
         self.current_dir = None
         self.step_player = 0
-
         self.pacgums = []
         self.ghosts = []
         self.corners = [
@@ -201,19 +185,17 @@ class Game:
         ]
         self._place_ghosts()
         self._place_pacgums()
-
-        self.time_start = pygame.time.get_ticks()
+        self.time_start = time.time()
         self.step_ghost = 0
         self.edible_until = 0
-
     def draw(self) -> None:
         self.screen.blit(self.images.img_background, (0, 0))
         self.maze.draw(self.screen)
-        font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 50)
+        font = pygame.font.Font(None, 75)
         score_ui = font.render(
             f"SCORE: {self.player.score}", True, (255, 255, 255))
         lives_ui = font.render(f"x{self.player.lives}", True, (255, 255, 255))
-        level_title_ui = font.render("level", True, (255, 255, 255))
+        level_title_ui = font.render("LEVEL", True, (255, 255, 255))
         if self.level > 10:
             self.run_game = False
             self.run_victory = True
@@ -227,11 +209,8 @@ class Game:
         self.screen.blit(level_title_ui, (820, 400))
         self.screen.blit(level_ui, (870, 450))
         self.screen.blit(self.images.img_heart, (360, 85))
-        rect_pause = self.images.img_pause.get_rect()
-        rect_pause.x = 5
-        rect_pause.y = 5
-        self.screen.blit(self.images.img_pause, rect_pause)
-        elapsed = (pygame.time.get_ticks() - self.time_start) // 1000
+        self.screen.blit(self.images.img_pause, (5, 5))
+        elapsed = int(time.time() - self.time_start)
         time_sec = max(0, (self.time - elapsed))
         time_ui = font.render(f"TIME: {time_sec}", True, (255, 255, 255))
         self.screen.blit(time_ui, (370, 10))
@@ -247,19 +226,17 @@ class Game:
             self.pacgums.remove(p)
             self.player.score += p.points
             if p.is_super:
-                self.edible_until = (pygame.time.get_ticks() +
-                                     Game.config.super_pacgum_duration_ms)
+                self.edible_until = (time.time() +
+                                    Game.config.super_pacgum_duration_ms)
                 for ghost in self.ghosts:
                     if ghost.current_dir:
                         ghost.current_dir = (
                             -ghost.current_dir[0], -ghost.current_dir[1])
-
         if len(self.pacgums) == 0 or self.cheat.skip_level:
             self.next_level()
-
         for pacgum in self.pacgums:
             pacgum.draw(self.screen)
-        now = pygame.time.get_ticks()
+        now = time.time()
         edible = now < self.edible_until
         for ghost in self.ghosts:
             ghost.is_edible = edible
@@ -306,91 +283,61 @@ class Game:
         if not self.cheat.speed:
             self.screen.blit(self.images.img_off, (30, 700))
         pygame.display.update()
-
     def main_menu(self) -> None:
         while self.run_menu:
             self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_title, (250, 10))
-            rect_start = self.images.img_start.get_rect()
-            rect_start_hover = self.images.img_start_hover.get_rect()
-            rect_start.x = 330
-            rect_start.y = 200
-            rect_start_hover.x = 330
-            rect_start_hover.y = 200
-            self.screen.blit(self.images.img_start, rect_start)
-            if rect_start.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_start_hover, rect_start_hover)
-            rect_highscore = self.images.img_highscore.get_rect()
-            rect_highscore_hover = self.images.img_highscore_hover.get_rect()
-            rect_highscore.x = 330
-            rect_highscore.y = 400
-            rect_highscore_hover.x = 330
-            rect_highscore_hover.y = 400
-            self.screen.blit(self.images.img_highscore, rect_highscore)
-            if rect_highscore.collidepoint(pygame.mouse.get_pos()):
+            self.screen.blit(self.images.img_start, (330, 200))
+            if collide_p(330, 200, 400, 150):
+                self.screen.blit(self.images.img_start_hover, (330, 200))
+            self.screen.blit(self.images.img_highscore, (330, 400))
+            if collide_p(330, 400, 400, 150):
                 self.screen.blit(
                     self.images.img_highscore_hover,
-                    rect_highscore_hover)
-            rect_instructions = self.images.img_instructions.get_rect()
-            rect_instructions_hover = \
-                self.images.img_instructions_hover.get_rect()
-            rect_instructions.x = 330
-            rect_instructions.y = 600
-            rect_instructions_hover.x = 330
-            rect_instructions_hover.y = 600
-            self.screen.blit(self.images.img_instructions, rect_instructions)
-            if rect_instructions.collidepoint(pygame.mouse.get_pos()):
+                    (330, 400))
+            self.screen.blit(self.images.img_instructions, (330, 600))
+            if collide_p(330, 600, 400, 150):
                 self.screen.blit(
                     self.images.img_instructions_hover,
-                    rect_instructions_hover)
-            rect_exit = self.images.img_exit.get_rect()
-            rect_exit_hover = self.images.img_exit_hover.get_rect()
-            rect_exit.x = 330
-            rect_exit.y = 800
-            rect_exit_hover.x = 330
-            rect_exit_hover.y = 800
-            self.screen.blit(self.images.img_exit, rect_exit)
-            if rect_exit.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_exit_hover, rect_exit_hover)
+                    (330, 600))
+            self.screen.blit(self.images.img_exit, (330, 800))
+            if collide_p(330, 800, 400, 150):
+                self.screen.blit(self.images.img_exit_hover, (330, 800))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if rect_start.collidepoint(event.pos):
+                    if collide_p(330, 200, 400, 150):
                         self.run_menu = False
                         self.run_game = True
                         self.rest()
                         self.game()
-                    if rect_instructions.collidepoint(event.pos):
+                    if collide_p(330, 600, 400, 150):
                         self.run_menu = False
                         self.run_instruction = True
                         self.instructions()
-                    if rect_highscore.collidepoint(event.pos):
+                    if collide_p(330, 400, 400, 150):
                         self.run_menu = False
                         self.run_highscore = True
                         self.highscore()
-                    if rect_exit.collidepoint(event.pos):
+                    if collide_p(330, 800, 400, 150):
                         sys.exit(0)
             pygame.display.update()
-
     def instructions(self) -> None:
         space = False
         while self.run_instruction:
             self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_instructions_title, (100, 10))
             self.screen.blit(self.images.img_menu, (250, 800))
-            rect_menu_hover = self.images.img_menu_hover.get_rect()
-            rect_menu_hover.x = 250
-            rect_menu_hover.y = 800
             if not space:
                 self.screen.blit(self.images.img_controls, (0, 250))
             if space:
                 self.screen.blit(self.images.img_rules, (125, 250))
-            if rect_menu_hover.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_menu_hover, rect_menu_hover)
+            if collide_p(250, 800, 500, 150):
+                self.screen.blit(self.images.img_menu_hover, (250, 800))
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if rect_menu_hover.collidepoint(event.pos):
+                    if collide_p(250, 800, 500, 150):
                         self.run_instruction = False
                         self.run_menu = True
                         self.main_menu()
@@ -402,10 +349,9 @@ class Game:
                     self.run_game = False
                     sys.exit(0)
             pygame.display.update()
-
     def highscore(self) -> None:
-        font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 40)
-        font_empty = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 70)
+        font = pygame.font.Font(None, 70)
+        font_empty = pygame.font.Font(None, 125)
         empty_ui = font_empty.render(
             "No High Score Yet!", True, (255, 255, 255))
         list_highscore = get_top_ten()
@@ -414,11 +360,8 @@ class Game:
             i = 0
             self.screen.blit(self.images.img_highscore_title, (100, 10))
             self.screen.blit(self.images.img_menu, (250, 800))
-            rect_menu_hover = self.images.img_menu_hover.get_rect()
-            rect_menu_hover.x = 250
-            rect_menu_hover.y = 800
             if len(list_highscore) == 0:
-                self.screen.blit(empty_ui, (75, 450))
+                self.screen.blit(empty_ui, (110, 450))
             if len(list_highscore) > 0:
                 _, first_socre = list_highscore[0]
             for element in list_highscore:
@@ -431,11 +374,11 @@ class Game:
                         i += 60
                 else:
                     self.screen.blit(empty_ui, (75, 450))
-            if rect_menu_hover.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_menu_hover, rect_menu_hover)
+            if collide_p(250, 800, 500, 150):
+                self.screen.blit(self.images.img_menu_hover, (250, 800))
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if rect_menu_hover.collidepoint(event.pos):
+                    if collide_p(250, 800, 500, 150):
                         self.run_highscore = False
                         self.run_menu = True
                         self.main_menu()
@@ -444,16 +387,12 @@ class Game:
                     self.run_game = False
                     sys.exit(0)
             pygame.display.update()
-
     def game(self) -> None:
-        rect_pause = self.images.img_pause.get_rect()
-        rect_pause.x = 5
-        rect_pause.y = 5
         while self.run_game:
             keys = pygame.key.get_pressed()
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if rect_pause.collidepoint(event.pos):
+                    if collide_p(5, 5, 100, 100):
                         self.run_pause_menu = True
                         self.pause_menu()
                 if event.type == pygame.QUIT:
@@ -465,7 +404,7 @@ class Game:
                     if event.key == pygame.K_i:
                         self.cheat.invincible = not self.cheat.invincible
                     if event.key == pygame.K_e:
-                        if self.player.lives < 5:
+                        if self.player.lives < 99:
                             self.player.lives += 1
                     if event.key == pygame.K_l:
                         self.cheat.skip_level = True
@@ -502,62 +441,52 @@ class Game:
                     self.player.move_right(self.maze)
             # Check if ghosts are edible to apply 20% slowdown (multiply ticks
             # by 1.25)
-            now_ticks = pygame.time.get_ticks()
+            now_ticks = time.time()
             are_ghosts_edible = now_ticks < self.edible_until
             base_ghost_ticks = Game.config.ghost_speed_ticks
             current_ghost_ticks = int(
                 base_ghost_ticks *
                 1.25) if are_ghosts_edible else base_ghost_ticks
-
             if self.step_ghost % current_ghost_ticks == 0:
                 if not self.cheat.frezz:
                     Ghost.update_shared_mode(
-                        pygame.time.get_ticks(), self.level)
+                        time.time(), self.level)
                     for ghost in self.ghosts:
                         ghost.workflow(self.maze, self.player)
-
             if not self.cheat.frezz:
                 for ghost in self.ghosts:
                     ghost.update_visual()
             self.player.update_visual(self.move_player)
             self.player.invincible = self.cheat.invincible
             self.draw()
-
     def pause_menu(self) -> None:
-        pause_start = pygame.time.get_ticks()
-        rect_continue_hover = self.images.img_continue_hover.get_rect()
-        rect_continue_hover.x = 275
-        rect_continue_hover.y = 350
-        rect_menu_hover = self.images.img_menu_hover.get_rect()
-        rect_menu_hover.x = 275
-        rect_menu_hover.y = 650
+        pause_start = time.time()
         while self.run_pause_menu:
             self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_pause_title, (125, -75))
             self.screen.blit(self.images.img_continue, (275, 350))
             self.screen.blit(self.images.img_menu, (275, 650))
-            if rect_continue_hover.collidepoint(pygame.mouse.get_pos()):
+            if collide_p(275, 350, 500, 150):
                 self.screen.blit(
                     self.images.img_continue_hover,
-                    rect_continue_hover)
-            if rect_menu_hover.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_menu_hover, rect_menu_hover)
+                    (275, 350))
+            if collide_p(275, 650, 500, 150):
+                self.screen.blit(self.images.img_menu_hover, (275, 650))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if rect_continue_hover.collidepoint(event.pos):
+                    if collide_p(275, 350, 500, 150):
                         self.run_pause_menu = False
-                    if rect_menu_hover.collidepoint(event.pos):
+                    if collide_p(275, 650, 500, 150):
                         self.run_pause_menu = False
                         self.run_game = False
                         self.run_menu = True
                         self.main_menu()
             pygame.display.update()
-        self.time_start += pygame.time.get_ticks() - pause_start
-
+        self.time_start += time.time() - pause_start
     def game_over(self) -> None:
-        font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 50)
+        font = pygame.font.Font(None, 70)
         empty = font.render("Enter user", True, (0, 0, 0))
         score_ui = font.render(
             f"SCORE: {self.player.score}", True, (255, 255, 255))
@@ -576,23 +505,17 @@ class Game:
             self.screen.blit(self.images.img_game_over, (175, 20))
             self.screen.blit(self.images.img_box, (250, 500))
             self.screen.blit(score_ui, (370, 425))
-            rect_save = self.images.img_save.get_rect()
-            rect_save.x = 250
-            rect_save.y = 700
-            rect_save_hover = self.images.img_save_hover.get_rect()
-            rect_save_hover.x = 250
-            rect_save_hover.y = 700
-            self.screen.blit(self.images.img_save, rect_save)
+            self.screen.blit(self.images.img_save, (250, 700))
             text_ui = font.render(text, True, (0, 0, 0))
-            if rect_save_hover.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_save_hover, rect_save_hover)
+            if collide_p(250, 700, 500, 150):
+                self.screen.blit(self.images.img_save_hover, (250, 700))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                     self.run_game = False
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if rect_save.collidepoint(event.pos) and len(text) > 0:
+                    if collide_p(250, 700, 500, 150) and len(text) > 0:
                         if text in data:
                             data[text] = max(data[text], self.player.score)
                         else:
@@ -627,9 +550,8 @@ class Game:
             if len(text) > 0:
                 self.screen.blit(text_ui, (300, 545))
             pygame.display.update()
-
     def victory(self) -> None:
-        font = pygame.font.Font("PixelatedEleganceRegular-ovawB.ttf", 50)
+        font = pygame.font.Font(None, 70)
         empty = font.render("Enter user", True, (0, 0, 0))
         score_ui = font.render(
             f"SCORE: {self.player.score}", True, (255, 255, 255))
@@ -648,23 +570,17 @@ class Game:
             self.screen.blit(self.images.img_victory, (10, 10))
             self.screen.blit(self.images.img_box, (250, 500))
             self.screen.blit(score_ui, (370, 425))
-            rect_save = self.images.img_save.get_rect()
-            rect_save.x = 250
-            rect_save.y = 700
-            rect_save_hover = self.images.img_save_hover.get_rect()
-            rect_save_hover.x = 250
-            rect_save_hover.y = 700
-            self.screen.blit(self.images.img_save, rect_save)
+            self.screen.blit(self.images.img_save, (250, 700))
             text_ui = font.render(text, True, (0, 0, 0))
-            if rect_save_hover.collidepoint(pygame.mouse.get_pos()):
-                self.screen.blit(self.images.img_save_hover, rect_save_hover)
+            if collide_p(250, 700, 500, 150):
+                self.screen.blit(self.images.img_save_hover, (250, 700))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                     self.run_game = False
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if rect_save.collidepoint(event.pos) and len(text) > 0:
+                    if collide_p(250, 700, 500, 150) and len(text) > 0:
                         if text in data:
                             data[text] = max(data[text], self.player.score)
                         else:
@@ -699,8 +615,6 @@ class Game:
             if len(text) > 0:
                 self.screen.blit(text_ui, (300, 545))
             pygame.display.update()
-
     def run(self) -> None:
-
         while self.running:
             self.main_menu()

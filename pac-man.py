@@ -1,5 +1,6 @@
 import pygame
 import sys
+from src.game import Game
 from src.game_config import parse_config
 
 
@@ -12,7 +13,6 @@ def main() -> None:
         sys.exit(1)
     config_file: str = sys.argv[1]
     config = parse_config(config_file)
-    from src.game import Game
     Game.config = config
     pygame.init()
     screen = pygame.display.set_mode((1000, 1000))
