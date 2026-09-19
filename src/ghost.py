@@ -26,29 +26,14 @@ def get_greedy_move(
     Returns:
         None.
     """
-    directions = []
-    if maze.can_move(ghost.row, ghost.col, 'up'):
-        directions.append((-1, 0))
-    if maze.can_move(ghost.row, ghost.col, 'down'):
-        directions.append((1, 0))
-    if maze.can_move(ghost.row, ghost.col, 'left'):
-        directions.append((0, -1))
-    if maze.can_move(ghost.row, ghost.col, 'right'):
-        directions.append((0, 1))
-
-    if ghost.current_dir and len(directions) > 1:
-        reverse_dir = (-ghost.current_dir[0], -ghost.current_dir[1])
-        if reverse_dir in directions:
-            directions.remove(reverse_dir)
-
-    if not directions:
-        return
+    directions = ghost.valid_directions(maze)
 
     best_dir = directions[0]
     best_dist = float('-inf') if run_away else float('inf')
     for (dr, dc) in directions:
-        dist = (ghost.row + dr - target_row) ** 2 + \
-            (ghost.col + dc - target_col) ** 2
+        d_row = ghost.row + dr - target_row
+        d_col = ghost.col + dc - target_col
+        dist = d_row ** 2 + d_col ** 2
         if run_away:
             if dist > best_dist:
                 best_dist = dist
@@ -62,8 +47,7 @@ def get_greedy_move(
     ghost.current_dir = best_dir
 
 
-def chase_red(ghost: 'Ghost', maze: Maze,
-              player: Player) -> None:
+def chase_red(ghost: 'Ghost', maze: Maze, player: Player) -> None:
     """Chase behavior for Blinky (Red Ghost).
 
     Targets the player's exact current grid position directly.
@@ -79,8 +63,7 @@ def chase_red(ghost: 'Ghost', maze: Maze,
     get_greedy_move(ghost, maze, player.row, player.col)
 
 
-def chase_pink(ghost: 'Ghost', maze: Maze,
-               player: Player) -> None:
+def chase_pink(ghost: 'Ghost', maze: Maze, player: Player) -> None:
     """Chase behavior for Pinky (Pink Ghost).
 
     Targets 4 tiles ahead to ambush.
@@ -94,6 +77,7 @@ def chase_pink(ghost: 'Ghost', maze: Maze,
         None.
     """
     (dr, dc) = (0, 0)
+
     if player.direction == 'up':
         dr = -4
     elif player.direction == 'down':
@@ -102,11 +86,11 @@ def chase_pink(ghost: 'Ghost', maze: Maze,
         dc = -4
     elif player.direction == 'right':
         dc = 4
+
     get_greedy_move(ghost, maze, player.row + dr, player.col + dc)
 
 
-def chase_yellow(ghost: 'Ghost', maze: Maze,
-                 player: Player) -> None:
+def chase_yellow(ghost: 'Ghost', maze: Maze, player: Player) -> None:
     """Chase behavior for Clyde (Yellow Ghost).
 
     Chases if > 8 tiles away, else flees.
@@ -126,21 +110,20 @@ def chase_yellow(ghost: 'Ghost', maze: Maze,
         get_greedy_move(ghost, maze, player.row, player.col, run_away=True)
 
 
-def chase_blue(ghost: 'Ghost', maze: Maze,
-               player: Player) -> None:
-    """Chase behavior for Inky (Blue Ghost).
+def chase_blue(ghost: 'Ghost', maze: Maze, player: Player) -> None:
+    in_line_of_sight = (ghost.row == player.row) or (ghost.col == player.col)
+    too_close = (ghost.row - player.row) ** 2 + \
+                (ghost.col - player.col) ** 2 < 64
 
-    Now simplified to just move randomly.
-
-    Args:
-        ghost: The ghost executing the behavior.
-        maze: The game maze.
-        player: The player.
-
-    Returns:
-        None.
-    """
-    ghost.move_randomly(maze)
+    if in_line_of_sight and too_close:
+        get_greedy_move(ghost, maze, player.row, player.col)
+    else:
+        directions = ghost.valid_directions(maze)
+        if directions:
+            (dr, dc) = random.choice(directions)
+            ghost.row += dr
+            ghost.col += dc
+            ghost.current_dir = (dr, dc)
 
 
 class Ghost:
@@ -171,11 +154,13 @@ class Ghost:
         current_time *= 1000
         elapsed = current_time - cls.last_mode_switch_time
         base_scatter = src.game.Game.config.scatter_duration_ms
-        scatter_duration = max(1.0, base_scatter - (level - 1) * 0.5)
+        scatter_duration = max(4.0, base_scatter - (level - 1) * 0.5)
         chase_duration = src.game.Game.config.chase_duration_ms
+
         if cls.shared_mode == 'scatter' and elapsed > scatter_duration:
             cls.shared_mode = 'chase'
             cls.last_mode_switch_time = current_time
+
         elif cls.shared_mode == 'chase' and elapsed > chase_duration:
             cls.shared_mode = 'scatter'
             cls.last_mode_switch_time = current_time
@@ -211,6 +196,33 @@ class Ghost:
             pygame.image.load('assets/images/ghost_eatble.png'), (40, 40))
         self.current_img = self.normal_img
 
+    def valid_directions(self, maze: Maze) -> list[tuple[int, int]]:
+        """Returns a list of valid moves from the current position.
+
+        Args:
+            maze: The game maze.
+
+        Returns:
+            A list of valid (dr, dc) tuples.
+        """
+        directions: list[tuple[int, int]] = []
+
+        if maze.can_move(self.row, self.col, 'up'):
+            directions.append((-1, 0))
+        if maze.can_move(self.row, self.col, 'down'):
+            directions.append((1, 0))
+        if maze.can_move(self.row, self.col, 'left'):
+            directions.append((0, -1))
+        if maze.can_move(self.row, self.col, 'right'):
+            directions.append((0, 1))
+
+        if self.current_dir and len(directions) > 1:
+            reverse_dir = (-self.current_dir[0], -self.current_dir[1])
+            if reverse_dir in directions:
+                directions.remove(reverse_dir)
+
+        return directions
+
     def update_visual(self) -> None:
         """Smoothly interpolates the ghost's visual pixel position.
 
@@ -224,11 +236,14 @@ class Ghost:
         """
         target_x = self.col * 40
         target_y = self.row * 40
+
         base_ticks = src.game.Game.config.ghost_speed_ticks
-        current_ticks = int(
-            base_ticks *
-            1.25) if self.is_edible else base_ticks
+        if self.is_edible:
+            current_ticks = int(base_ticks * 1.25)
+        else:
+            current_ticks = base_ticks
         speed = 40 / current_ticks
+
         if self.visual_x < target_x:
             self.visual_x = min(target_x, self.visual_x + speed)
         elif self.visual_x > target_x:
@@ -265,24 +280,6 @@ class Ghost:
         Returns:
             None.
         """
-        directions = []
-        if maze.can_move(self.row, self.col, 'up'):
-            directions.append((-1, 0))
-        if maze.can_move(self.row, self.col, 'down'):
-            directions.append((1, 0))
-        if maze.can_move(self.row, self.col, 'left'):
-            directions.append((0, -1))
-        if maze.can_move(self.row, self.col, 'right'):
-            directions.append((0, 1))
-        if self.current_dir and len(directions) > 1:
-            reverse_dir = (-self.current_dir[0], -self.current_dir[1])
-            if reverse_dir in directions:
-                directions.remove(reverse_dir)
-        if directions:
-            (dr, dc) = random.choice(directions)
-            self.row += dr
-            self.col += dc
-            self.current_dir = (dr, dc)
 
     def workflow(
             self,

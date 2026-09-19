@@ -15,7 +15,7 @@ class GameConfig(BaseModel):
     points_per_pacgum: int = Field(default=10, gt=0, le=1000000)
     points_per_super_pacgum: int = Field(default=50, gt=0, le=1000000)
     points_per_ghost: int = Field(default=200, gt=0, le=1000000)
-    seed: Union[int, float, str, None] = Field(default="None")
+    seed: Union[int, float, str, None] = Field(default=None)
     level_max_time: int = Field(default=90, gt=0, le=3600)
     highscore_filename: str = Field(default='highscore.json')
     ghost_respawn_ms: int = Field(default=8000, gt=0, le=3600000)
@@ -42,7 +42,7 @@ class GameConfig(BaseModel):
         if level > 1:
             return 0
 
-        if self.seed is None or self.seed == "None":
+        if self.seed is None:
             seed_str = "default_seed"
         else:
             seed_str = f"{self.seed}_{level}"
@@ -81,7 +81,8 @@ def parse_config(filename: str) -> GameConfig:
         'points_per_super_pacgum',
         'points_per_ghost',
         'seed',
-        'level_max_time'}
+        'level_max_time'
+    }
 
     valid_overrides = {}
 
@@ -95,7 +96,7 @@ def parse_config(filename: str) -> GameConfig:
                     GameConfig.model_validate({k: v})
                     valid_overrides[k] = v
                 except ValidationError as e:
-                    error_msg = ", ".join(err.get('msg', '') for err in e.errors())
+                    error_msg = ", ".join(err['msg'] for err in e.errors())
                     print(
                         f"Invalid '{v}' for '{k}'. {error_msg}.",
                         file=sys.stderr)

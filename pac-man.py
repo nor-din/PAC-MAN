@@ -26,9 +26,11 @@ def main() -> None:
             'Usage: python3 pac-man.py <config.json>',
             file=sys.stderr)
         sys.exit(1)
+
     config_file: str = sys.argv[1]
     config = parse_config(config_file)
     Game.config = config
+
     pygame.init()
     screen = pygame.display.set_mode((1000, 1000))
     pygame.display.set_caption('PAC-MAN')

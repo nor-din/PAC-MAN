@@ -615,8 +615,7 @@ class Game:
                 1.25) if are_ghosts_edible else base_ghost_ticks
             if self.step_ghost % current_ghost_ticks == 0:
                 if not self.cheat.frezz:
-                    Ghost.update_shared_mode(
-                        time.time(), self.level)
+                    Ghost.update_shared_mode(time.time(), self.level)
                     for ghost in self.ghosts:
                         ghost.workflow(self.maze, self.player)
             if not self.cheat.frezz:
