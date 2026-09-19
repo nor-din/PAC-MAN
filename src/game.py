@@ -205,6 +205,12 @@ class Game:
         self.cheat.speed = False
         self.cheat.skip_level = False
         self.level = 1
+        self.gen = MazeGenerator(
+            size=(15, 15),
+            perfect=False,
+            seed=get_maze_seed(Game.config.seed, self.level)
+        )
+        self.maze = Maze(self.gen.maze)
 
     def next_level(self) -> None:
         """Advances the game to the next level.

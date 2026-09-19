@@ -45,18 +45,23 @@ def collide_p(x_surf: int, y_surf: int, w: int, h: int) -> bool:
 def get_maze_seed(base_seed: int | float | str | None, level: int) -> int:
     """Generates a positive integer seed for the maze generator.
 
-    Combines the base config seed with the current level to ensure each level
-    generates a unique but reproducible maze. If no base seed is provided,
-    returns 0 to trigger random generation.
+    The first level uses a deterministic seed (either based on the provided
+    config seed or a default one) so that it is always the same.
+    Subsequent levels return 0 to trigger random generation.
 
     Args:
         base_seed: The seed value from the game configuration, or None.
         level: The current game level.
 
     Returns:
-        A positive integer suitable for the MazeGenerator.
+        A positive integer suitable for the MazeGenerator, or 0 for random.
     """
-    if base_seed is None:
+    if level > 1:
         return 0
-    seed_str = f"{base_seed}_{level}"
+
+    if base_seed is None or base_seed == "None":
+        seed_str = "default_seed"
+    else:
+        seed_str = f"{base_seed}_{level}"
+
     return sum(ord(c) for c in seed_str)
