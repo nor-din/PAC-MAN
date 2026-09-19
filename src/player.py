@@ -150,7 +150,7 @@ class Player:
                 (36, 36))
             ]
         self.counter += 1
-        if self.counter >= 7:
+        if self.counter >= 12:
             self.counter = 0
             self.index += 1
         if self.invincible:
