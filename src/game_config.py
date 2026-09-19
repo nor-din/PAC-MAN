@@ -11,7 +11,7 @@ class GameConfig(BaseModel):
     Contains fields and constraints for level settings, points, and durations.
     """
 
-    lives: int = Field(default=3, gt=0, lt=99)
+    lives: int = Field(default=3, gt=0, lt=100)
     points_per_pacgum: int = Field(default=10, gt=0, le=1000000)
     points_per_super_pacgum: int = Field(default=50, gt=0, le=1000000)
     points_per_ghost: int = Field(default=200, gt=0, le=1000000)
@@ -26,6 +26,28 @@ class GameConfig(BaseModel):
     ghost_speed_ticks: int = Field(default=30, gt=0)
     player_default_move: int = Field(default=1, gt=0)
     player_cheat_move: int = Field(default=2, gt=0)
+
+    def get_maze_seed(self, level: int) -> int:
+        """Generates a positive integer seed for the maze generator.\n
+        The first level uses a deterministic seed (either based on the provided
+        config seed or a default one) so that it is always the same.
+        Subsequent levels return 0 to trigger random generation.
+
+        Args:
+            level: The current game level.
+
+        Returns:
+            A positive integer suitable for the MazeGenerator, or 0 for random.
+        """
+        if level > 1:
+            return 0
+
+        if self.seed is None or self.seed == "None":
+            seed_str = "default_seed"
+        else:
+            seed_str = f"{self.seed}_{level}"
+
+        return sum(ord(c) for c in seed_str)
 
 
 def remove_comments(lines: list[str]) -> str:
@@ -52,8 +74,6 @@ def parse_config(filename: str) -> GameConfig:
     Returns:
         A validated GameConfig instance with safe fallbacks applied.
 
-    Raises:
-        SystemExit: If configuration fails completely.
     """
     allowed_user_keys = {
         'lives',
@@ -62,7 +82,9 @@ def parse_config(filename: str) -> GameConfig:
         'points_per_ghost',
         'seed',
         'level_max_time'}
+
     valid_overrides = {}
+
     try:
         with open(filename, 'r') as config_file:
             cleaned_file = remove_comments(config_file.readlines())
@@ -73,7 +95,7 @@ def parse_config(filename: str) -> GameConfig:
                     GameConfig.model_validate({k: v})
                     valid_overrides[k] = v
                 except ValidationError as e:
-                    error_msg = e.errors()[0].get('msg', 'Validation failed')
+                    error_msg = ", ".join(err.get('msg', '') for err in e.errors())
                     print(
                         f"Invalid '{v}' for '{k}'. {error_msg}.",
                         file=sys.stderr)
@@ -95,4 +117,5 @@ def parse_config(filename: str) -> GameConfig:
         print(
             f"Warning: Error reading '{filename}': {e}. Using defaults.",
             file=sys.stderr)
+
     return GameConfig(**valid_overrides)

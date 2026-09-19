@@ -11,7 +11,6 @@ from src.pacgum import Pacgum
 from src.ghost import Ghost, chase_red, chase_pink, chase_blue, chase_yellow
 from src.ui import Images
 from src.cheat import Cheat
-from src.utils import get_top_ten, collide_p, get_maze_seed
 from src.game_config import GameConfig
 
 KEY_TO_CHAR = {
@@ -83,7 +82,7 @@ class Game:
         self.gen = MazeGenerator(
             size=(15, 15),
             perfect=False,
-            seed=get_maze_seed(Game.config.seed, self.level)
+            seed=Game.config.get_maze_seed(self.level)
         )
         self.maze = Maze(self.gen.maze)
         self.middel_row = 7
@@ -208,7 +207,7 @@ class Game:
         self.gen = MazeGenerator(
             size=(15, 15),
             perfect=False,
-            seed=get_maze_seed(Game.config.seed, self.level)
+            seed=Game.config.get_maze_seed(self.level)
         )
         self.maze = Maze(self.gen.maze)
 
@@ -231,7 +230,7 @@ class Game:
         self.gen = MazeGenerator(
             size=(15, 15),
             perfect=False,
-            seed=get_maze_seed(Game.config.seed, self.level)
+            seed=Game.config.get_maze_seed(self.level)
         )
         self.maze = Maze(self.gen.maze)
         self.middel_row = self.maze.rows // 2
@@ -364,6 +363,39 @@ class Game:
             self.screen.blit(self.images.img_off, (30, 700))
         pygame.display.update()
 
+    def get_top_ten(self) -> list[tuple[str, int]]:
+        """Reads the highscores JSON and returns the top 10 entries.
+
+        Returns:
+            A sorted list of tuples containing (player_name, score).
+        """
+        highscores = {}
+        filename = Game.config.highscore_filename
+        try:
+            with open(filename) as high_score_file:
+                highscores = json.load(high_score_file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            highscores = {}
+        hscores = sorted(highscores.items(), key=lambda x: x[1], reverse=True)
+        return hscores[:10]
+
+    def collide_p(self, x_surf: int, y_surf: int, w: int, h: int) -> bool:
+        """Checks if the mouse cursor is hovering over a bounding box.
+
+        Args:
+            x_surf: Top-left X coordinate of the box.
+            y_surf: Top-left Y coordinate of the box.
+            w: Width of the box.
+            h: Height of the box.
+
+        Returns:
+            True if the mouse is inside the box.
+        """
+        x, y = pygame.mouse.get_pos()
+        if x_surf <= x < x_surf + w and y_surf <= y < y_surf + h:
+            return True
+        return False
+
     def main_menu(self) -> None:
         """Handles the Main Menu logic and rendering.
 
@@ -380,39 +412,39 @@ class Game:
             self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_title, (250, 10))
             self.screen.blit(self.images.img_start, (330, 200))
-            if collide_p(330, 200, 400, 150):
+            if self.collide_p(330, 200, 400, 150):
                 self.screen.blit(self.images.img_start_hover, (330, 200))
             self.screen.blit(self.images.img_highscore, (330, 400))
-            if collide_p(330, 400, 400, 150):
+            if self.collide_p(330, 400, 400, 150):
                 self.screen.blit(
                     self.images.img_highscore_hover,
                     (330, 400))
             self.screen.blit(self.images.img_instructions, (330, 600))
-            if collide_p(330, 600, 400, 150):
+            if self.collide_p(330, 600, 400, 150):
                 self.screen.blit(
                     self.images.img_instructions_hover,
                     (330, 600))
             self.screen.blit(self.images.img_exit, (330, 800))
-            if collide_p(330, 800, 400, 150):
+            if self.collide_p(330, 800, 400, 150):
                 self.screen.blit(self.images.img_exit_hover, (330, 800))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if collide_p(330, 200, 400, 150):
+                    if self.collide_p(330, 200, 400, 150):
                         self.run_menu = False
                         self.run_game = True
                         self.rest()
                         self.game()
-                    if collide_p(330, 600, 400, 150):
+                    if self.collide_p(330, 600, 400, 150):
                         self.run_menu = False
                         self.run_instruction = True
                         self.instructions()
-                    if collide_p(330, 400, 400, 150):
+                    if self.collide_p(330, 400, 400, 150):
                         self.run_menu = False
                         self.run_highscore = True
                         self.highscore()
-                    if collide_p(330, 800, 400, 150):
+                    if self.collide_p(330, 800, 400, 150):
                         sys.exit(0)
             pygame.display.update()
 
@@ -436,7 +468,7 @@ class Game:
                 self.screen.blit(self.images.img_controls, (0, 250))
             if space:
                 self.screen.blit(self.images.img_rules, (125, 250))
-            if collide_p(250, 800, 500, 150):
+            if self.collide_p(250, 800, 500, 150):
                 self.screen.blit(self.images.img_menu_hover, (250, 800))
 
             font = pygame.font.Font(None, 40)
@@ -449,7 +481,7 @@ class Game:
 
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if collide_p(250, 800, 500, 150):
+                    if self.collide_p(250, 800, 500, 150):
                         self.run_instruction = False
                         self.run_menu = True
                         self.main_menu()
@@ -477,7 +509,7 @@ class Game:
         font_empty = pygame.font.Font(None, 125)
         empty_ui = font_empty.render(
             "No High Score Yet!", True, (255, 255, 255))
-        list_highscore = get_top_ten()
+        list_highscore = self.get_top_ten()
         while self.run_highscore:
             self.screen.blit(self.images.img_background, (0, 0))
             i = 0
@@ -497,11 +529,11 @@ class Game:
                         i += 60
                 else:
                     self.screen.blit(empty_ui, (75, 450))
-            if collide_p(250, 800, 500, 150):
+            if self.collide_p(250, 800, 500, 150):
                 self.screen.blit(self.images.img_menu_hover, (250, 800))
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if collide_p(250, 800, 500, 150):
+                    if self.collide_p(250, 800, 500, 150):
                         self.run_highscore = False
                         self.run_menu = True
                         self.main_menu()
@@ -527,7 +559,7 @@ class Game:
             keys = pygame.key.get_pressed()
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if collide_p(5, 5, 100, 100):
+                    if self.collide_p(5, 5, 100, 100):
                         self.run_pause_menu = True
                         self.pause_menu()
                 if event.type == pygame.QUIT:
@@ -611,19 +643,19 @@ class Game:
             self.screen.blit(self.images.img_pause_title, (125, -75))
             self.screen.blit(self.images.img_continue, (275, 350))
             self.screen.blit(self.images.img_menu, (275, 650))
-            if collide_p(275, 350, 500, 150):
+            if self.collide_p(275, 350, 500, 150):
                 self.screen.blit(
                     self.images.img_continue_hover,
                     (275, 350))
-            if collide_p(275, 650, 500, 150):
+            if self.collide_p(275, 650, 500, 150):
                 self.screen.blit(self.images.img_menu_hover, (275, 650))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if collide_p(275, 350, 500, 150):
+                    if self.collide_p(275, 350, 500, 150):
                         self.run_pause_menu = False
-                    if collide_p(275, 650, 500, 150):
+                    if self.collide_p(275, 650, 500, 150):
                         self.run_pause_menu = False
                         self.run_game = False
                         self.run_menu = True
@@ -663,7 +695,7 @@ class Game:
             self.screen.blit(score_ui, (370, 425))
             self.screen.blit(self.images.img_save, (250, 700))
             text_ui = font.render(text, True, (0, 0, 0))
-            if collide_p(250, 700, 500, 150):
+            if self.collide_p(250, 700, 500, 150):
                 self.screen.blit(self.images.img_save_hover, (250, 700))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -671,7 +703,7 @@ class Game:
                     self.run_game = False
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if collide_p(250, 700, 500, 150) and len(text) > 0:
+                    if self.collide_p(250, 700, 500, 150) and len(text) > 0:
                         if text in data:
                             data[text] = max(data[text], self.player.score)
                         else:
@@ -739,7 +771,7 @@ class Game:
             self.screen.blit(score_ui, (370, 425))
             self.screen.blit(self.images.img_save, (250, 700))
             text_ui = font.render(text, True, (0, 0, 0))
-            if collide_p(250, 700, 500, 150):
+            if self.collide_p(250, 700, 500, 150):
                 self.screen.blit(self.images.img_save_hover, (250, 700))
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -747,7 +779,7 @@ class Game:
                     self.run_game = False
                     sys.exit(0)
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if collide_p(250, 700, 500, 150) and len(text) > 0:
+                    if self.collide_p(250, 700, 500, 150) and len(text) > 0:
                         if text in data:
                             data[text] = max(data[text], self.player.score)
                         else:

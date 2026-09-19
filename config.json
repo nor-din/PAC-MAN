@@ -1,8 +1,10 @@
 {
-  "lives": 3,
-  "points_per_pacgum": 10,
+  # test comment
+  "lives": 5,
+  "points_per_pacgum": 10, # test comment
   "points_per_super_pacgum": 50,
-  "points_per_ghost": 200,
-  "seed": 42,
-  "level_max_time": 120
+  "points_per_ghost": 0,
+  "seed": " ",
+  "level_max_time": 1
+  # test comment
 }
