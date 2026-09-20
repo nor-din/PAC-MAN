@@ -13,7 +13,7 @@ make install
 ```
 
 **Execution:**
-To launch the game with the default configuration:
+To launch the game with a specific configuration file:
 ```bash
 make run CONFIG=config.json
 ```
