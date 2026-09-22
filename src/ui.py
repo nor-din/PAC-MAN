@@ -62,6 +62,9 @@ class Images:
             self.img_background = pygame.image.load(
                 'assets/images/background.png')
             self.img_rules = pygame.image.load('assets/images/rules.png')
-        except FileNotFoundError:
-            print('Image not Found', file=sys.stderr)
+        except FileNotFoundError as e:
+            print(f"Image not Found: <Error: {e}>", file=sys.stderr)
+            sys.exit(1)
+        except PermissionError:
+            print(f"Don't have Permission this image: <Error: {e}>", file=sys.stderr)
             sys.exit(1)

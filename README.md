@@ -35,11 +35,7 @@ The game uses a JSON configuration file (e.g., `config.json`) to dictate runtime
 - `points_per_ghost`: Points awarded for eating a frightened ghost (default 200)
 - `seed`: Seed for the random number generator to ensure reproducible mazes (default None)
 - `level_max_time`: Time limit for the level (default 90)
-- `highscore_filename`: Name of the save file (default 'highscore.json')
-- `ghost_respawn_ms`: Milliseconds a ghost stays dead (default 8000)
-- `super_pacgum_duration_ms`: Duration of frightened mode (default 7000)
-- `scatter_duration_ms`: Duration of ghost scatter mode (default 7000)
-- `chase_duration_ms`: Duration of ghost chase mode (default 20000)
+
 
 ## Highscore
 The highscore system persists data to a local file (`highscore.json`). It keeps track of all scores and players. If the file is missing or corrupted, the system handles the exception gracefully, returning an empty dictionary, and creates a fresh save file at the end of the game.

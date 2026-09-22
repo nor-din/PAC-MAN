@@ -374,7 +374,7 @@ class Game:
         try:
             with open(filename) as high_score_file:
                 highscores = json.load(high_score_file)
-        except (FileNotFoundError, json.JSONDecodeError):
+        except (FileNotFoundError, json.JSONDecodeError, PermissionError):
             highscores = {}
         hscores = sorted(highscores.items(), key=lambda x: x[1], reverse=True)
         return hscores[:10]
