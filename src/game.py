@@ -8,7 +8,7 @@ from mazegenerator import MazeGenerator
 from src.maze import Maze
 from src.player import Player
 from src.pacgum import Pacgum
-from src.ghost import Ghost, chase_red, chase_pink, chase_blue, chase_yellow
+from src.ghost import Ghost, RedGhost, PinkGhost, BlueGhost, YellowGhost
 from src.ui import Images
 from src.cheat import Cheat
 from src.game_config import GameConfig
@@ -164,18 +164,13 @@ class Game:
             None.
         """
         ghosts_config = [
-            ("pink", self.corners[0], chase_pink),
-            ("red", self.corners[1], chase_red),
-            ("yellow", self.corners[2], chase_yellow),
-            ("blue", self.corners[3], chase_blue),
+            (PinkGhost, self.corners[0]),
+            (RedGhost, self.corners[1]),
+            (YellowGhost, self.corners[2]),
+            (BlueGhost, self.corners[3]),
         ]
-        for name, (row, col), chase_func in ghosts_config:
-            new_ghost = Ghost(
-                row,
-                col,
-                f"./assets/images/ghost_{name}.png",
-                chasing_function=chase_func
-            )
+        for ghost_class, (row, col) in ghosts_config:
+            new_ghost = ghost_class(row, col)
             self.ghosts.append(new_ghost)
 
     def rest(self) -> None:

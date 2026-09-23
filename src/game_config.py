@@ -50,73 +50,76 @@ class GameConfig(BaseModel):
         return sum(ord(c) for c in seed_str)
 
 
-def remove_comments(lines: list[str]) -> str:
-    """Removes '#' comments from a JSON string.
+    @staticmethod
+    def remove_comments(lines: list[str]) -> str:
+        """Removes '#' comments from a JSON string.
 
-    Args:
-        lines: A list of string lines from the config file.
+        Args:
+            lines: A list of string lines from the config file.
 
-    Returns:
-        A single sanitized JSON string.
-    """
-    clean_lines = []
-    for line in lines:
-        clean_lines.append(line.split('#')[0])
-    return '\n'.join(clean_lines)
+        Returns:
+            A single sanitized JSON string.
+        """
+        clean_lines = []
+        for line in lines:
+            clean_lines.append(line.split('#')[0])
+        return '\n'.join(clean_lines)
 
+    @classmethod
+    def parse_config(cls, filename: str) -> "GameConfig":
+        """Loads, sanitizes, and validates the config file.
 
-def parse_config(filename: str) -> GameConfig:
-    """Loads, sanitizes, and validates the config file.
+        Args:
+            filename: Path to the JSON configuration file.
 
-    Args:
-        filename: Path to the JSON configuration file.
+        Returns:
+            A validated GameConfig instance with safe fallbacks applied.
 
-    Returns:
-        A validated GameConfig instance with safe fallbacks applied.
+        """
+        allowed_user_keys = {
+            'lives',
+            'points_per_pacgum',
+            'points_per_super_pacgum',
+            'points_per_ghost',
+            'seed',
+            'level_max_time'
+        }
 
-    """
-    allowed_user_keys = {
-        'lives',
-        'points_per_pacgum',
-        'points_per_super_pacgum',
-        'points_per_ghost',
-        'seed',
-        'level_max_time'
-    }
+        valid_overrides = {}
 
-    valid_overrides = {}
+        try:
+            with open(filename, 'r') as config_file:
+                cleaned_file = cls._remove_comments(config_file.readlines())
+                user_config = json.loads(cleaned_file)
+            for (k, v) in user_config.items():
+                if k in valid_overrides:
+                    print(f"Warning: Duplicated key '{k}'. Ignoring second value.", file=sys.stderr)
+                if k in allowed_user_keys:
+                    try:
+                        cls.model_validate({k: v})
+                        valid_overrides[k] = v
+                    except ValidationError as e:
+                        error_msg = ", ".join(err['msg'] for err in e.errors())
+                        print(
+                            f"Invalid '{v}' for '{k}'. {error_msg}.",
+                            file=sys.stderr)
+                else:
+                    print(f"Warning: Unknown key '{k}'. Ignoring.", file=sys.stderr)
+        except FileNotFoundError:
+            print(
+                f"Warning: Config file '{filename}' not found.",
+                file=sys.stderr)
+        except PermissionError:
+            print(
+                f"Warning: Permission denied '{filename}'. Using defaults.",
+                file=sys.stderr)
+        except json.JSONDecodeError as e:
+            print(
+                f"Warning: Invalid JSON in '{filename}': {e}.",
+                file=sys.stderr)
+        except Exception as e:
+            print(
+                f"Warning: Error reading '{filename}': {e}. Using defaults.",
+                file=sys.stderr)
 
-    try:
-        with open(filename, 'r') as config_file:
-            cleaned_file = remove_comments(config_file.readlines())
-            user_config = json.loads(cleaned_file)
-        for (k, v) in user_config.items():
-            if k in allowed_user_keys:
-                try:
-                    GameConfig.model_validate({k: v})
-                    valid_overrides[k] = v
-                except ValidationError as e:
-                    error_msg = ", ".join(err['msg'] for err in e.errors())
-                    print(
-                        f"Invalid '{v}' for '{k}'. {error_msg}.",
-                        file=sys.stderr)
-            else:
-                f"Warning: Unknown key '{k}'. Ignoring.",
-    except FileNotFoundError:
-        print(
-            f"Warning: Config file '{filename}' not found.",
-            file=sys.stderr)
-    except PermissionError:
-        print(
-            f"Warning: Permission denied '{filename}'. Using defaults.",
-            file=sys.stderr)
-    except json.JSONDecodeError as e:
-        print(
-            f"Warning: Invalid JSON in '{filename}': {e}.",
-            file=sys.stderr)
-    except Exception as e:
-        print(
-            f"Warning: Error reading '{filename}': {e}. Using defaults.",
-            file=sys.stderr)
-
-    return GameConfig(**valid_overrides)
+        return cls(**valid_overrides)

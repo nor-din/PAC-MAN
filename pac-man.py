@@ -5,7 +5,7 @@ Handles config loading, Pygame initialization, and launches the game loop.
 import pygame
 import sys
 from src.game import Game
-from src.game_config import parse_config
+from src.game_config import GameConfig
 
 
 def main() -> None:
@@ -28,7 +28,7 @@ def main() -> None:
         sys.exit(1)
 
     config_file: str = sys.argv[1]
-    config = parse_config(config_file)
+    config = GameConfig.parse_config(config_file)
     Game.config = config
 
     pygame.init()
