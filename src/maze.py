@@ -6,7 +6,7 @@ class Maze:
     """Wrapper for the externally generated maze grid."""
 
     def __init__(self, grid: list[list[int]]) -> None:
-        """Initializes the maze.
+        """Initialize the maze.
 
         Args:
             grid: The 2D integer list representing walls and paths.
@@ -23,7 +23,7 @@ class Maze:
             pygame.image.load('assets/images/wall_h.png'), (40, 4))
 
     def is_blocked(self, row: int, col: int) -> bool:
-        """Checks if a specific tile is a wall.
+        """Check if a specific tile is a wall.
 
         Args:
             row: Tile row.
@@ -35,7 +35,7 @@ class Maze:
         return self.grid[row][col] == 15
 
     def can_move(self, row: int, col: int, direction: str) -> bool:
-        """Checks if an entity can move in a given direction from a tile.
+        """Check if an entity can move in a given direction from a tile.
 
         Args:
             row: Current tile row.
@@ -57,7 +57,7 @@ class Maze:
         return False
 
     def draw(self, screen: pygame.Surface) -> None:
-        """Renders the maze walls onto the screen.
+        """Render the maze walls onto the screen.
 
         Args:
             screen: The Pygame surface to draw onto.

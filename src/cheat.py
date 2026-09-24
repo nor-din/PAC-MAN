@@ -12,7 +12,7 @@ class Cheat:
     """
 
     def __init__(self) -> None:
-        """Initializes all cheats to False.
+        """Initialize all cheats to False.
 
         Args:
             self: The instance object.

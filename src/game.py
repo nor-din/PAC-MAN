@@ -66,7 +66,7 @@ class Game:
     config: 'GameConfig'
 
     def __init__(self, screen: pygame.Surface) -> None:
-        """Initializes the game state.
+        """Initialize the game state.
 
         Args:
             screen: Pygame surface to render the game on.
@@ -121,7 +121,7 @@ class Game:
         self.respawn_ms = Game.config.ghost_respawn_ms / 1000.0
 
     def place_pacgums(self) -> None:
-        """Populates the maze with normal and super pacgums.
+        """Populate the maze with normal and super pacgums.
 
         Iterates over the maze grid and places pacgums in valid corridor tiles,
         except in the center box.
@@ -152,7 +152,7 @@ class Game:
                                     points=Game.config.points_per_pacgum))
 
     def place_ghosts(self) -> None:
-        """Instantiates and places the 4 ghosts in the maze corners.
+        """Instantiate and places the 4 ghosts in the maze corners.
 
         Assigns Blinky (red), Pinky (pink), Inky (blue), and Clyde (yellow) to
         their respective corners and links their specific chasing behaviors.
@@ -174,7 +174,7 @@ class Game:
             self.ghosts.append(new_ghost)
 
     def rest(self) -> None:
-        """Resets the level state after losing a life.
+        """Reset the level state after losing a life.
 
         Re-initializes the player position, ghost positions, and resets the
         pacgums layout and edible timers.
@@ -252,7 +252,7 @@ class Game:
         self.edible_until = 0.0
 
     def draw(self) -> None:
-        """Renders the static maze background, entities, and active HUD.
+        """Render the static maze background, entities, and active HUD.
 
         Draws pacgums, ghosts, and the player sprite onto the screen,
         along with UI elements like score, lives, and time.
@@ -359,7 +359,7 @@ class Game:
         pygame.display.update()
 
     def get_top_ten(self) -> list[tuple[str, int]]:
-        """Reads the highscores JSON and returns the top 10 entries.
+        """Read the highscores JSON and returns the top 10 entries.
 
         Returns:
             A sorted list of tuples containing (player_name, score).
@@ -370,14 +370,17 @@ class Game:
                 highscores = json.load(high_score_file)
             if not isinstance(highscores, dict):
                 highscores = {}
-            highscores = {str(k): int(v) for k, v in highscores.items() if isinstance(v, (int, float))}
+            highscores = {
+                str(k): int(v) for k, v in highscores.items()
+                if isinstance(v, (int, float))
+            }
         except Exception:
             highscores = {}
         hscores = sorted(highscores.items(), key=lambda x: x[1], reverse=True)
         return hscores[:10]
 
     def collide_p(self, x_surf: int, y_surf: int, w: int, h: int) -> bool:
-        """Checks if the mouse cursor is hovering over a bounding box.
+        """Check if the mouse cursor is hovering over a bounding box.
 
         Args:
             x_surf: Top-left X coordinate of the box.
@@ -394,7 +397,7 @@ class Game:
         return False
 
     def main_menu(self) -> None:
-        """Handles the Main Menu logic and rendering.
+        """Handle the Main Menu logic and rendering.
 
         Displays main options to start, view highscores, etc.
         Listens for mouse clicks on these menu items.
@@ -446,7 +449,7 @@ class Game:
             pygame.display.update()
 
     def instructions(self) -> None:
-        """Displays the game instructions screen.
+        """Display the game instructions screen.
 
         Explains controls and rules to the player.
 
@@ -492,7 +495,7 @@ class Game:
             pygame.display.update()
 
     def highscore(self) -> None:
-        """Displays the Top 10 highscores.
+        """Display the Top 10 highscores.
 
         Fetches and renders highscores from JSON.
 
@@ -541,7 +544,7 @@ class Game:
             pygame.display.update()
 
     def game(self) -> None:
-        """Executes the active gameplay loop for a single frame.
+        """Execute the active gameplay loop for a single frame.
 
         Handles player input, updates entity coordinates, applies cheat codes,
         and checks win/loss conditions based on collisions and timers.
@@ -623,7 +626,7 @@ class Game:
             self.draw()
 
     def pause_menu(self) -> None:
-        """Displays the pause menu.
+        """Display the pause menu.
 
         Pauses game logic until resumed.
 
@@ -660,7 +663,7 @@ class Game:
         self.time_start += time.time() - pause_start
 
     def game_over(self) -> None:
-        """Handles the Game Over sequence.
+        """Handle the Game Over sequence.
 
         Prompts user for name to save score.
 
@@ -683,7 +686,10 @@ class Game:
                 data = json.load(f)
             if not isinstance(data, dict):
                 data = {}
-            data = {str(k): int(v) for k, v in data.items() if isinstance(v, (int, float))}
+            data = {
+                str(k): int(v) for k, v in data.items()
+                if isinstance(v, (int, float))
+            }
         except Exception:
             data = {}
         while self.run_game_over:
@@ -716,7 +722,9 @@ class Game:
                             with open(hs_file, "w") as f:
                                 json.dump(data, f, indent=2)
                         except Exception as e:
-                            print(f"Warning: Could not save highscore - {e}", file=sys.stderr)
+                            print(
+                                f"Warning: Could not save highscore - {e}",
+                                file=sys.stderr)
                         self.run_game_over = False
                         self.run_menu = True
                         self.main_menu()
@@ -764,7 +772,10 @@ class Game:
                 data = json.load(f)
             if not isinstance(data, dict):
                 data = {}
-            data = {str(k): int(v) for k, v in data.items() if isinstance(v, (int, float))}
+            data = {
+                str(k): int(v) for k, v in data.items()
+                if isinstance(v, (int, float))
+            }
         except Exception:
             data = {}
         while self.run_victory:
@@ -797,7 +808,9 @@ class Game:
                             with open(hs_file, "w") as f:
                                 json.dump(data, f, indent=2)
                         except Exception as e:
-                            print(f"Warning: Could not save highscore - {e}", file=sys.stderr)
+                            print(
+                                f"Warning: Could not save highscore - {e}",
+                                file=sys.stderr)
                         self.run_victory = False
                         self.run_menu = True
                         self.main_menu()
@@ -822,7 +835,7 @@ class Game:
             pygame.display.update()
 
     def run(self) -> None:
-        """Main state machine router.
+        """Route to active menu or gameplay state.
 
         Routes to active menu or gameplay state.
 

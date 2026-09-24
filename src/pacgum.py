@@ -11,7 +11,7 @@ class Pacgum:
             col: int,
             is_super: bool = False,
             points: int = 10) -> None:
-        """Initializes the pacgum.
+        """Initialize the pacgum.
 
         Args:
             row: Grid row.
@@ -34,7 +34,7 @@ class Pacgum:
         self.img = pygame.transform.scale(self.img, (30, 30))
 
     def draw(self, screen: pygame.Surface) -> None:
-        """Renders the pacgum onto the screen.
+        """Render the pacgum onto the screen.
 
         Args:
             screen: The Pygame surface to draw onto.

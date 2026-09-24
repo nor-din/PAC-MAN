@@ -1,7 +1,7 @@
 """Module for defining and parsing JSON configuration with fallback logic."""
 import json
 import sys
-from typing import Union
+from typing import Union, Any
 from pydantic import BaseModel, Field, ValidationError
 
 
@@ -28,7 +28,8 @@ class GameConfig(BaseModel):
     player_cheat_move: int = Field(default=2, gt=0)
 
     def get_maze_seed(self, level: int) -> int:
-        """Generates a positive integer seed for the maze generator.\n
+        """Generate a positive integer seed for the maze generator.
+
         The first level uses a deterministic seed (either based on the provided
         config seed or a default one) so that it is always the same.
         Subsequent levels return 0 to trigger random generation.
@@ -51,7 +52,7 @@ class GameConfig(BaseModel):
 
     @staticmethod
     def remove_comments(lines: list[str]) -> str:
-        """Removes '#' comments from a JSON string.
+        """Remove '#' comments from a JSON string.
 
         Args:
             lines: A list of string lines from the config file.
@@ -65,13 +66,16 @@ class GameConfig(BaseModel):
         return '\n'.join(clean_lines)
 
     @staticmethod
-    def detect_duplicate_keys(ordered_pairs: list) -> dict:
+    def detect_duplicate_keys(
+            ordered_pairs: 'list[tuple[str, Any]]') -> 'dict[str, Any]':
         """Object pairs hook to detect duplicate keys during JSON parsing."""
-        d = {}
+        d: 'dict[str, Any]' = {}
 
         for k, v in ordered_pairs:
             if k in d:
-                print(f"Warning: Duplicated key '{k}'. Ignoring second value.", file=sys.stderr)
+                print(
+                    f"Warning: Duplicated key '{k}'. Ignoring second value.",
+                    file=sys.stderr)
             else:
                 d[k] = v
 
@@ -79,7 +83,7 @@ class GameConfig(BaseModel):
 
     @classmethod
     def parse_config(cls, filename: str) -> "GameConfig":
-        """Loads, sanitizes, and validates the config file.
+        """Load, sanitizes, and validates the config file.
 
         Args:
             filename: Path to the JSON configuration file.
@@ -102,7 +106,8 @@ class GameConfig(BaseModel):
         try:
             with open(filename, 'r') as config_file:
                 cleaned_file = cls.remove_comments(config_file.readlines())
-                user_config = json.loads(cleaned_file, object_pairs_hook=cls.detect_duplicate_keys)
+                user_config = json.loads(
+                    cleaned_file, object_pairs_hook=cls.detect_duplicate_keys)
             for (k, v) in user_config.items():
                 if k in allowed_user_keys:
                     try:
@@ -114,7 +119,9 @@ class GameConfig(BaseModel):
                             f"Invalid '{v}' for '{k}'. {error_msg}.",
                             file=sys.stderr)
                 else:
-                    print(f"Warning: Unknown key '{k}'. Ignoring.", file=sys.stderr)
+                    print(
+                        f"Warning: Unknown key '{k}'. Ignoring.",
+                        file=sys.stderr)
         except FileNotFoundError:
             print(
                 f"Warning: Config file '{filename}' not found.",

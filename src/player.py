@@ -7,7 +7,7 @@ class Player:
     """Represents the Pac-Man player entity."""
 
     def __init__(self, row: int, col: int) -> None:
-        """Initializes the player.
+        """Initialize the player.
 
         Args:
             row: Starting grid row.
@@ -68,7 +68,7 @@ class Player:
         self.visual_y = row * 40
 
     def move_right(self, maze: src.maze.Maze) -> None:
-        """Attempts to move the player right.
+        """Attempt to move the player right.
 
         Args:
             maze: The maze to check for wall collisions.
@@ -81,7 +81,7 @@ class Player:
             self.direction = 'right'
 
     def move_left(self, maze: src.maze.Maze) -> None:
-        """Attempts to move the player left.
+        """Attempt to move the player left.
 
         Args:
             maze: The maze to check for wall collisions.
@@ -94,7 +94,7 @@ class Player:
             self.direction = 'left'
 
     def move_up(self, maze: src.maze.Maze) -> None:
-        """Attempts to move the player up.
+        """Attempt to move the player up.
 
         Args:
             maze: The maze to check for wall collisions.
@@ -107,7 +107,7 @@ class Player:
             self.direction = 'up'
 
     def move_down(self, maze: src.maze.Maze) -> None:
-        """Attempts to move the player down.
+        """Attempt to move the player down.
 
         Args:
             maze: The maze to check for wall collisions.
@@ -120,7 +120,7 @@ class Player:
             self.direction = 'down'
 
     def draw(self, screen: pygame.Surface) -> None:
-        """Renders the player onto the screen based on their current direction.
+        """Render the player onto the screen based on their current direction.
 
         Args:
             screen: The Pygame surface to draw onto.

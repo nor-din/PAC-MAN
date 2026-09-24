@@ -23,7 +23,7 @@ class Ghost:
             cls,
             current_time: float,
             level: int = 1) -> None:
-        """Updates the global scatter/chase mode based on timing.
+        """Update the global scatter/chase mode based on timing.
 
         Args:
             current_time: The current timestamp in seconds.
@@ -47,7 +47,7 @@ class Ghost:
             cls.last_mode_switch_time = current_time
 
     def __init__(self, row: int, col: int, img_path: str) -> None:
-        """Initializes a ghost.
+        """Initialize a ghost.
 
         Args:
             row: Starting grid row.
@@ -73,7 +73,7 @@ class Ghost:
         self.current_img = self.normal_img
 
     def valid_directions(self, maze: Maze) -> list[tuple[int, int]]:
-        """Returns a list of valid moves from the current position.
+        """Return a list of valid moves from the current position.
 
         Args:
             maze: The game maze.
@@ -130,7 +130,7 @@ class Ghost:
             self.visual_y = max(target_y, self.visual_y - speed)
 
     def respawn(self) -> None:
-        """Resets the ghost to its home corner.
+        """Reset the ghost to its home corner.
 
         Args:
             self: The instance object.
@@ -146,7 +146,7 @@ class Ghost:
         self.current_dir = None
 
     def chase(self, maze: Maze, player: Player) -> None:
-        """Defines the chasing behavior. To be overridden by subclasses."""
+        """Define the chasing behavior. To be overridden by subclasses."""
         pass
 
     def get_greedy_move(
@@ -155,7 +155,7 @@ class Ghost:
             target_row: int,
             target_col: int,
             run_away: bool = False) -> None:
-        """Calculates the next optimal step for a ghost.
+        """Calculate the next optimal step for a ghost.
 
         Args:
             ghost: The ghost entity to move.
@@ -192,7 +192,7 @@ class Ghost:
             self,
             maze: Maze,
             player: Player) -> None:
-        """Determines the ghost's next move based on its current state.
+        """Determine the ghost's next move based on its current state.
 
         Executes state logic.
 
@@ -210,7 +210,7 @@ class Ghost:
             self.chase(maze, player)
 
     def draw(self, screen: pygame.Surface, edible: bool = False) -> None:
-        """Renders the ghost onto the screen.
+        """Render the ghost onto the screen.
 
         Args:
             screen: The Pygame surface to draw onto.
@@ -229,21 +229,45 @@ class Ghost:
 
 class RedGhost(Ghost):
     """Blinky (Red Ghost)."""
-    
+
     def __init__(self, row: int, col: int) -> None:
+        """Initialize the red ghost.
+
+        Args:
+            row: Starting row.
+            col: Starting col.
+        """
         super().__init__(row, col, "./assets/images/ghost_red.png")
 
     def chase(self, maze: Maze, player: Player) -> None:
+        """Chase the player using a greedy approach.
+
+        Args:
+            maze: The current maze.
+            player: The player object to chase.
+        """
         self.get_greedy_move(maze, player.row, player.col)
 
 
 class PinkGhost(Ghost):
     """Pinky (Pink Ghost)."""
-    
+
     def __init__(self, row: int, col: int) -> None:
+        """Initialize the pink ghost.
+
+        Args:
+            row: Starting row.
+            col: Starting col.
+        """
         super().__init__(row, col, "./assets/images/ghost_pink.png")
 
     def chase(self, maze: Maze, player: Player) -> None:
+        """Chase a target slightly ahead of the player.
+
+        Args:
+            maze: The current maze.
+            player: The player object to chase.
+        """
         (dr, dc) = (0, 0)
         if player.direction == 'up':
             dr = -4
@@ -259,11 +283,23 @@ class PinkGhost(Ghost):
 
 class YellowGhost(Ghost):
     """Clyde (Yellow Ghost)."""
-    
+
     def __init__(self, row: int, col: int) -> None:
+        """Initialize the yellow ghost.
+
+        Args:
+            row: Starting row.
+            col: Starting col.
+        """
         super().__init__(row, col, "./assets/images/ghost_yellow.png")
 
     def chase(self, maze: Maze, player: Player) -> None:
+        """Chase the player or run away based on distance.
+
+        Args:
+            maze: The current maze.
+            player: The player object to chase.
+        """
         run_away = True
         dist = (self.row - player.row) ** 2 + (self.col - player.col) ** 2
 
@@ -277,9 +313,21 @@ class BlueGhost(Ghost):
     """Inky (Blue Ghost)."""
 
     def __init__(self, row: int, col: int) -> None:
+        """Initialize the blue ghost.
+
+        Args:
+            row: Starting row.
+            col: Starting col.
+        """
         super().__init__(row, col, "./assets/images/ghost_blue.png")
 
     def chase(self, maze: Maze, player: Player) -> None:
+        """Chase when player is in line of sight, else move randomly.
+
+        Args:
+            maze: The current maze.
+            player: The player object to chase.
+        """
         in_line_of_sight = (self.row == player.row) or (self.col == player.col)
         dist = (self.row - player.row) ** 2 + (self.col - player.col) ** 2
 

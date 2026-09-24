@@ -7,7 +7,7 @@ class Images:
     """Preloads and stores all visual assets for the UI and backgrounds."""
 
     def __init__(self) -> None:
-        """Loads background, menu, and UI images from the assets folder.
+        """Load background, menu, and UI images from the assets folder.
 
         Args:
             self: The instance object.
@@ -65,6 +65,8 @@ class Images:
         except FileNotFoundError as e:
             print(f"Image not Found: <Error: {e}>", file=sys.stderr)
             sys.exit(1)
-        except PermissionError:
-            print(f"Don't have Permission this image: <Error: {e}>", file=sys.stderr)
+        except PermissionError as e:
+            print(
+                f"Don't have Permission this image: <Error: {e}>",
+                file=sys.stderr)
             sys.exit(1)
