@@ -364,12 +364,14 @@ class Game:
         Returns:
             A sorted list of tuples containing (player_name, score).
         """
-        highscores = {}
         filename = Game.config.highscore_filename
         try:
-            with open(filename) as high_score_file:
+            with open(filename, "r") as high_score_file:
                 highscores = json.load(high_score_file)
-        except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+            if not isinstance(highscores, dict):
+                highscores = {}
+            highscores = {str(k): int(v) for k, v in highscores.items() if isinstance(v, (int, float))}
+        except Exception:
             highscores = {}
         hscores = sorted(highscores.items(), key=lambda x: x[1], reverse=True)
         return hscores[:10]
@@ -679,9 +681,11 @@ class Game:
         try:
             with open(hs_file, "r") as f:
                 data = json.load(f)
-        except (json.JSONDecodeError, FileNotFoundError):
-            with open(hs_file, "w") as f:
-                json.dump({}, f, indent=2)
+            if not isinstance(data, dict):
+                data = {}
+            data = {str(k): int(v) for k, v in data.items() if isinstance(v, (int, float))}
+        except Exception:
+            data = {}
         while self.run_game_over:
             self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_game_over, (175, 20))
@@ -708,8 +712,11 @@ class Game:
                                     data.items(),
                                     key=lambda item: item[1],
                                     reverse=True)))
-                        with open(hs_file, "w") as f:
-                            json.dump(data, f, indent=2)
+                        try:
+                            with open(hs_file, "w") as f:
+                                json.dump(data, f, indent=2)
+                        except Exception as e:
+                            print(f"Warning: Could not save highscore - {e}", file=sys.stderr)
                         self.run_game_over = False
                         self.run_menu = True
                         self.main_menu()
@@ -755,9 +762,11 @@ class Game:
         try:
             with open(hs_file, "r") as f:
                 data = json.load(f)
-        except (json.JSONDecodeError, FileNotFoundError):
-            with open(hs_file, "w") as f:
-                json.dump({}, f, indent=2)
+            if not isinstance(data, dict):
+                data = {}
+            data = {str(k): int(v) for k, v in data.items() if isinstance(v, (int, float))}
+        except Exception:
+            data = {}
         while self.run_victory:
             self.screen.blit(self.images.img_background, (0, 0))
             self.screen.blit(self.images.img_victory, (10, 10))
@@ -784,8 +793,11 @@ class Game:
                                     data.items(),
                                     key=lambda item: item[1],
                                     reverse=True)))
-                        with open(hs_file, "w") as f:
-                            json.dump(data, f, indent=2)
+                        try:
+                            with open(hs_file, "w") as f:
+                                json.dump(data, f, indent=2)
+                        except Exception as e:
+                            print(f"Warning: Could not save highscore - {e}", file=sys.stderr)
                         self.run_victory = False
                         self.run_menu = True
                         self.main_menu()

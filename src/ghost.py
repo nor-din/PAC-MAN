@@ -7,45 +7,6 @@ from src.maze import Maze
 from src.player import Player
 
 
-def get_greedy_move(
-        ghost: 'Ghost',
-        maze: Maze,
-        target_row: int,
-        target_col: int,
-        run_away: bool = False) -> None:
-    """Calculates the next optimal step for a ghost.
-
-    Args:
-        ghost: The ghost entity to move.
-        maze: The maze layout.
-        target_row: The target row to reach or flee from.
-        target_col: The target column to reach or flee from.
-        run_away: If True, maximizes distance instead of minimizing it.
-
-    Returns:
-        None.
-    """
-    directions = ghost.valid_directions(maze)
-
-    best_dir = directions[0]
-    best_dist = float('-inf') if run_away else float('inf')
-    for (dr, dc) in directions:
-        d_row = ghost.row + dr - target_row
-        d_col = ghost.col + dc - target_col
-        dist = d_row ** 2 + d_col ** 2
-        if run_away:
-            if dist > best_dist:
-                best_dist = dist
-                best_dir = (dr, dc)
-        elif dist < best_dist:
-            best_dist = dist
-            best_dir = (dr, dc)
-
-    ghost.row += best_dir[0]
-    ghost.col += best_dir[1]
-    ghost.current_dir = best_dir
-
-
 class Ghost:
     """Represents a ghost entity in the game.
 
@@ -184,22 +145,48 @@ class Ghost:
         self.is_edible = False
         self.current_dir = None
 
-    def move_randomly(self, maze: Maze) -> None:
-        """Selects a random valid direction to move in the maze.
+    def chase(self, maze: Maze, player: Player) -> None:
+        """Defines the chasing behavior. To be overridden by subclasses."""
+        pass
 
-        Used primarily during the scatter phase when patrolling.
+    def get_greedy_move(
+            self,
+            maze: Maze,
+            target_row: int,
+            target_col: int,
+            run_away: bool = False) -> None:
+        """Calculates the next optimal step for a ghost.
 
         Args:
-            maze: The maze to check validity.
+            ghost: The ghost entity to move.
+            maze: The maze layout.
+            target_row: The target row to reach or flee from.
+            target_col: The target column to reach or flee from.
+            run_away: If True, maximizes distance instead of minimizing it.
 
         Returns:
             None.
         """
-        pass
+        directions = self.valid_directions(maze)
 
-    def chase(self, maze: Maze, player: Player) -> None:
-        """Defines the chasing behavior. To be overridden by subclasses."""
-        pass
+        best_dir = directions[0]
+        best_dist = float('-inf') if run_away else float('inf')
+
+        for (dr, dc) in directions:
+            d_row = self.row + dr - target_row
+            d_col = self.col + dc - target_col
+            dist = d_row ** 2 + d_col ** 2
+            if run_away:
+                if dist > best_dist:
+                    best_dist = dist
+                    best_dir = (dr, dc)
+            elif dist < best_dist:
+                best_dist = dist
+                best_dir = (dr, dc)
+
+        self.row += best_dir[0]
+        self.col += best_dir[1]
+        self.current_dir = best_dir
 
     def workflow(
             self,
@@ -216,10 +203,9 @@ class Ghost:
         Returns:
             None.
         """
-        if self.is_edible:
-            get_greedy_move(self, maze, player.row, player.col, run_away=True)
-        elif Ghost.shared_mode == 'scatter':
-            get_greedy_move(self, maze, player.row, player.col, run_away=True)
+        if self.is_edible or Ghost.shared_mode == 'scatter':
+            self.get_greedy_move(maze, player.row, player.col, run_away=True)
+
         elif Ghost.shared_mode == 'chase':
             self.chase(maze, player)
 
@@ -248,7 +234,7 @@ class RedGhost(Ghost):
         super().__init__(row, col, "./assets/images/ghost_red.png")
 
     def chase(self, maze: Maze, player: Player) -> None:
-        get_greedy_move(self, maze, player.row, player.col)
+        self.get_greedy_move(maze, player.row, player.col)
 
 
 class PinkGhost(Ghost):
@@ -267,7 +253,8 @@ class PinkGhost(Ghost):
             dc = -4
         elif player.direction == 'right':
             dc = 4
-        get_greedy_move(self, maze, player.row + dr, player.col + dc)
+
+        self.get_greedy_move(maze, player.row + dr, player.col + dc)
 
 
 class YellowGhost(Ghost):
@@ -277,26 +264,27 @@ class YellowGhost(Ghost):
         super().__init__(row, col, "./assets/images/ghost_yellow.png")
 
     def chase(self, maze: Maze, player: Player) -> None:
+        run_away = True
         dist = (self.row - player.row) ** 2 + (self.col - player.col) ** 2
+
         if dist > 64:
-            get_greedy_move(self, maze, player.row, player.col)
-        else:
-            get_greedy_move(self, maze, player.row, player.col, run_away=True)
+            run_away = False
+
+        self.get_greedy_move(maze, player.row, player.col, run_away=run_away)
 
 
 class BlueGhost(Ghost):
     """Inky (Blue Ghost)."""
-    
+
     def __init__(self, row: int, col: int) -> None:
         super().__init__(row, col, "./assets/images/ghost_blue.png")
 
     def chase(self, maze: Maze, player: Player) -> None:
         in_line_of_sight = (self.row == player.row) or (self.col == player.col)
-        too_close = (self.row - player.row) ** 2 + \
-                    (self.col - player.col) ** 2 < 64
+        dist = (self.row - player.row) ** 2 + (self.col - player.col) ** 2
 
-        if in_line_of_sight and too_close:
-            get_greedy_move(self, maze, player.row, player.col)
+        if in_line_of_sight and dist < 64:
+            self.get_greedy_move(maze, player.row, player.col)
         else:
             directions = self.valid_directions(maze)
             if directions:
@@ -304,4 +292,3 @@ class BlueGhost(Ghost):
                 self.row += dr
                 self.col += dc
                 self.current_dir = (dr, dc)
-

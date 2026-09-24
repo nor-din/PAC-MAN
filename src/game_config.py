@@ -49,7 +49,6 @@ class GameConfig(BaseModel):
 
         return sum(ord(c) for c in seed_str)
 
-
     @staticmethod
     def remove_comments(lines: list[str]) -> str:
         """Removes '#' comments from a JSON string.
@@ -64,6 +63,19 @@ class GameConfig(BaseModel):
         for line in lines:
             clean_lines.append(line.split('#')[0])
         return '\n'.join(clean_lines)
+
+    @staticmethod
+    def detect_duplicate_keys(ordered_pairs: list) -> dict:
+        """Object pairs hook to detect duplicate keys during JSON parsing."""
+        d = {}
+
+        for k, v in ordered_pairs:
+            if k in d:
+                print(f"Warning: Duplicated key '{k}'. Ignoring second value.", file=sys.stderr)
+            else:
+                d[k] = v
+
+        return d
 
     @classmethod
     def parse_config(cls, filename: str) -> "GameConfig":
@@ -89,11 +101,9 @@ class GameConfig(BaseModel):
 
         try:
             with open(filename, 'r') as config_file:
-                cleaned_file = cls._remove_comments(config_file.readlines())
-                user_config = json.loads(cleaned_file)
+                cleaned_file = cls.remove_comments(config_file.readlines())
+                user_config = json.loads(cleaned_file, object_pairs_hook=cls.detect_duplicate_keys)
             for (k, v) in user_config.items():
-                if k in valid_overrides:
-                    print(f"Warning: Duplicated key '{k}'. Ignoring second value.", file=sys.stderr)
                 if k in allowed_user_keys:
                     try:
                         cls.model_validate({k: v})
