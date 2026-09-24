@@ -372,7 +372,7 @@ class Game:
                 highscores = {}
             highscores = {
                 str(k): int(v) for k, v in highscores.items()
-                if isinstance(v, (int, float))
+                if isinstance(v, int)
             }
         except Exception:
             highscores = {}
