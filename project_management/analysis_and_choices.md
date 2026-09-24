@@ -5,7 +5,7 @@ The overall architecture of the game is based on object-oriented programming (OO
 - **Game Engine**: `game.py` handles the main loop, event processing, and ties all entities together.
 - **Entities**: `player.py`, `ghost.py`, and `pacgum.py` manage the state and logic for individual game objects.
 - **Configuration**: `game_config.py` is entirely separated from the game logic, ensuring parsing errors are handled securely before Pygame initializes.
-- **UI & Helpers**: `ui.py` and `utils.py` encapsulate drawing functions, fonts, menus, and file I/O for the highscore.
+- **UI**: `ui.py` encapsulates drawing functions and menus, while `game.py` handles the file I/O for the highscore.
 
 This modularity made bug fixing easier since rendering problems were isolated from pathfinding or state mechanics.
 

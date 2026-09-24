@@ -11,7 +11,7 @@ Our team structured the development workload by dividing major components betwee
 - **Highscore System:** Created the persistent data logic to read, update, sort, and save player highscores to a local JSON file.
 - **Player Mechanics:** Programmed Pac-Man's grid-snapping movement, wall collision detection, and the logic for eating standard/super pacgums.
 - **Cheat Codes:** Hooked up the keyboard listeners for developer cheats (Freeze, Invincible, Speed, Skip Level) and applied their effects.
-- **Deployment to a public gaming platform:** Upload game in itch.io using Pyinsttaler to convert src file to excutable programe, Ex: ./pac-man.py confige.json.
+- **Deployment to a public gaming platform:** Upload game in itch.io using PyInstaller to convert src file to executable program, Ex: ./pac-man config.json.
 
 
 ### nel-mout

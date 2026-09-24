@@ -18,6 +18,6 @@ To ensure the game never crashes and complies with the "no Python traceback" req
 
 ### 3. Bugs Found and Fixed
 - **Bug:** Missing highscore files or corrupted score JSON caused a `FileNotFoundError` or `JSONDecodeError` traceback when opening the Highscore menu.
-  - **Fix:** Added try/except blocks in `utils.py` around the highscore loading function to return an empty dictionary and proceed safely if the file is missing or corrupted.
+  - **Fix:** Added try/except blocks in `game.py` around the highscore loading function to return an empty dictionary and proceed safely if the file is missing or corrupted.
 - **Bug:** Ghosts getting permanently stuck in corners due to pathfinding loops when both horizontal and vertical directions were blocked.
   - **Fix:** Implemented logic to prevent ghosts from reversing their immediate previous direction (`reverse_dir`), forcing them to continue along valid paths.
