@@ -1,7 +1,7 @@
 [project]
 name = "pac-man"
 version = "0.1.0"
-description = "A classic PAC-MAN arcade revival built in Python."
+description = "A classic PAC-MAN built in Python."
 readme = "README.md"
 requires-python = ">=3.10, <3.14"
 dependencies = [

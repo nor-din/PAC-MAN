@@ -1,4 +1,5 @@
 """Module defining the Ghost entities, AI behaviors, and pathfinding."""
+import time
 import pygame
 import random
 import src.game
@@ -33,11 +34,9 @@ class Ghost:
             None.
         """
         current_time *= 1000
-        if cls.last_mode_switch_time == 0.0:
-            cls.last_mode_switch_time = current_time
         elapsed = current_time - cls.last_mode_switch_time
         base_scatter = src.game.Game.config.scatter_duration_ms
-        scatter_duration = max(4.0, base_scatter - (level - 1) * 0.5)
+        scatter_duration = max(4000.0, base_scatter - (level - 1) * 500.0)
         chase_duration = src.game.Game.config.chase_duration_ms
 
         if cls.shared_mode == 'scatter' and elapsed > scatter_duration:
@@ -67,6 +66,7 @@ class Ghost:
         self.is_edible = False
         self.is_eaten = False
         self.respawn_at = 0.0
+        Ghost.last_mode_switch_time = time.time() * 1000
         self.current_dir: tuple[int, int] | None = None
         self.normal_img = pygame.transform.scale(
             pygame.image.load(img_path), (40, 40))
