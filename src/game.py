@@ -372,7 +372,9 @@ class Game:
                 highscores = {}
             highscores = {
                 str(k): int(v) for k, v in highscores.items()
-                if isinstance(v, int)
+                if isinstance(v, int) and isinstance(k, str)
+                and 0 < len(k) <= 10
+                and k.replace(' ', 'd').isalnum()
             }
         except Exception:
             highscores = {}
@@ -519,13 +521,19 @@ class Game:
                 self.screen.blit(empty_ui, (110, 450))
             if len(list_highscore) > 0:
                 _, first_socre = list_highscore[0]
-            for element in list_highscore:
+            for idx, element in enumerate(list_highscore):
                 name, score = element
                 if first_socre > 0:
                     if score > 0:
+                        if len(str(score)) > 22:
+                            score_str = f"{score:.17e}"
+                        else:
+                            score_str = str(score)
                         text_ui = font.render(
-                            f"{name} : {score}", True, (255, 255, 255))
-                        self.screen.blit(text_ui, (300, 200 + i))
+                            f"{idx + 1}- {name} : {score_str}",
+                            True,
+                            (255, 255, 255))
+                        self.screen.blit(text_ui, (1, 210 + i))
                         i += 60
                 else:
                     self.screen.blit(empty_ui, (75, 450))

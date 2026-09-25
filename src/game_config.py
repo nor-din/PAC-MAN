@@ -12,9 +12,9 @@ class GameConfig(BaseModel):
     """
 
     lives: int = Field(default=3, gt=0, lt=100)
-    points_per_pacgum: int = Field(default=10, gt=0, le=1000000)
-    points_per_super_pacgum: int = Field(default=50, gt=0, le=1000000)
-    points_per_ghost: int = Field(default=200, gt=0, le=1000000)
+    points_per_pacgum: int = Field(default=10, gt=0, le=1000)
+    points_per_super_pacgum: int = Field(default=50, gt=0, le=5000)
+    points_per_ghost: int = Field(default=200, gt=0, le=20000)
     seed: Union[int, float, str, None] = Field(default=None)
     level_max_time: int = Field(default=90, gt=0, le=3600)
     highscore_filename: str = Field(default='highscore.json')
@@ -68,7 +68,14 @@ class GameConfig(BaseModel):
     @staticmethod
     def detect_duplicate_keys(
             ordered_pairs: 'list[tuple[str, Any]]') -> 'dict[str, Any]':
-        """Object pairs hook to detect duplicate keys during JSON parsing."""
+        """Object pairs hook to detect duplicate keys during JSON parsing.
+
+        Args:
+            ordered_pairs: A list of key-value pairs parsed from JSON.
+
+        Returns:
+            A dictionary constructed from the pairs with duplicates ignored.
+        """
         d: 'dict[str, Any]' = {}
 
         for k, v in ordered_pairs:

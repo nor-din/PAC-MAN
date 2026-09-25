@@ -33,6 +33,8 @@ class Ghost:
             None.
         """
         current_time *= 1000
+        if cls.last_mode_switch_time == 0.0:
+            cls.last_mode_switch_time = current_time
         elapsed = current_time - cls.last_mode_switch_time
         base_scatter = src.game.Game.config.scatter_duration_ms
         scatter_duration = max(4.0, base_scatter - (level - 1) * 0.5)
@@ -146,8 +148,42 @@ class Ghost:
         self.current_dir = None
 
     def chase(self, maze: Maze, player: Player) -> None:
-        """Define the chasing behavior. To be overridden by subclasses."""
-        pass
+        """Define the chasing behavior. To be overridden by subclasses.
+
+        Args:
+            maze: The current maze.
+            player: The player object to chase.
+
+        Returns:
+            None.
+        """
+        self.move_randomly(maze)
+
+    def move_randomly(self, maze: Maze) -> None:
+        """Move the ghost in a random valid direction.
+
+        Args:
+            maze: The current maze object.
+
+        Returns:
+            None.
+        """
+        directions = self.valid_directions(maze)
+
+        if not directions:
+            return
+
+        if len(directions) > 1 and self.current_dir is not None:
+            rev_row = self.current_dir[0] * -1
+            rev_col = self.current_dir[1] * -1
+
+            if (rev_row, rev_col) in directions:
+                directions.remove((rev_row, rev_col))
+
+        random_dr, random_dc = random.choice(directions)
+        self.row += random_dr
+        self.col += random_dc
+        self.current_dir = (random_dr, random_dc)
 
     def get_greedy_move(
             self,
@@ -158,7 +194,6 @@ class Ghost:
         """Calculate the next optimal step for a ghost.
 
         Args:
-            ghost: The ghost entity to move.
             maze: The maze layout.
             target_row: The target row to reach or flee from.
             target_col: The target column to reach or flee from.
@@ -203,8 +238,11 @@ class Ghost:
         Returns:
             None.
         """
-        if self.is_edible or Ghost.shared_mode == 'scatter':
+        if self.is_edible:
             self.get_greedy_move(maze, player.row, player.col, run_away=True)
+
+        if Ghost.shared_mode == 'scatter':
+            self.move_randomly(maze)
 
         elif Ghost.shared_mode == 'chase':
             self.chase(maze, player)
@@ -245,6 +283,9 @@ class RedGhost(Ghost):
         Args:
             maze: The current maze.
             player: The player object to chase.
+
+        Returns:
+            None.
         """
         self.get_greedy_move(maze, player.row, player.col)
 
@@ -267,6 +308,9 @@ class PinkGhost(Ghost):
         Args:
             maze: The current maze.
             player: The player object to chase.
+
+        Returns:
+            None.
         """
         (dr, dc) = (0, 0)
         if player.direction == 'up':
@@ -299,6 +343,9 @@ class YellowGhost(Ghost):
         Args:
             maze: The current maze.
             player: The player object to chase.
+
+        Returns:
+            None.
         """
         run_away = True
         dist = (self.row - player.row) ** 2 + (self.col - player.col) ** 2
@@ -320,23 +367,3 @@ class BlueGhost(Ghost):
             col: Starting col.
         """
         super().__init__(row, col, "./assets/images/ghost_blue.png")
-
-    def chase(self, maze: Maze, player: Player) -> None:
-        """Chase when player is in line of sight, else move randomly.
-
-        Args:
-            maze: The current maze.
-            player: The player object to chase.
-        """
-        in_line_of_sight = (self.row == player.row) or (self.col == player.col)
-        dist = (self.row - player.row) ** 2 + (self.col - player.col) ** 2
-
-        if in_line_of_sight and dist < 64:
-            self.get_greedy_move(maze, player.row, player.col)
-        else:
-            directions = self.valid_directions(maze)
-            if directions:
-                (dr, dc) = random.choice(directions)
-                self.row += dr
-                self.col += dc
-                self.current_dir = (dr, dc)
