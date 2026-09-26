@@ -106,9 +106,6 @@ class Ghost:
 
         Moves visual x/y closer to logical coordinates.
 
-        Args:
-            self: The instance object.
-
         Returns:
             None.
         """
@@ -133,9 +130,6 @@ class Ghost:
 
     def respawn(self) -> None:
         """Reset the ghost to its home corner.
-
-        Args:
-            self: The instance object.
 
         Returns:
             None.
@@ -241,7 +235,7 @@ class Ghost:
         if self.is_edible:
             self.get_greedy_move(maze, player.row, player.col, run_away=True)
 
-        if Ghost.shared_mode == 'scatter':
+        elif Ghost.shared_mode == 'scatter':
             self.move_randomly(maze)
 
         elif Ghost.shared_mode == 'chase':

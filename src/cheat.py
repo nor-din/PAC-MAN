@@ -14,9 +14,6 @@ class Cheat:
     def __init__(self) -> None:
         """Initialize all cheats to False.
 
-        Args:
-            self: The instance object.
-
         Returns:
             None.
         """

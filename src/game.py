@@ -126,9 +126,6 @@ class Game:
         Iterates over the maze grid and places pacgums in valid corridor tiles,
         except in the center box.
 
-        Args:
-            self: The instance object.
-
         Returns:
             None.
         """
@@ -157,9 +154,6 @@ class Game:
         Assigns Blinky (red), Pinky (pink), Inky (blue), and Clyde (yellow) to
         their respective corners and links their specific chasing behaviors.
 
-        Args:
-            self: The instance object.
-
         Returns:
             None.
         """
@@ -178,9 +172,6 @@ class Game:
 
         Re-initializes the player position, ghost positions, and resets the
         pacgums layout and edible timers.
-
-        Args:
-            self: The instance object.
 
         Returns:
             None.
@@ -211,9 +202,6 @@ class Game:
 
         Increments the level counter, resets positions, clears pacgums,
         and generates a new maze using the external maze generator.
-
-        Args:
-            self: The instance object.
 
         Returns:
             None.
@@ -256,9 +244,6 @@ class Game:
 
         Draws pacgums, ghosts, and the player sprite onto the screen,
         along with UI elements like score, lives, and time.
-
-        Args:
-            self: The instance object.
 
         Returns:
             None.
@@ -404,9 +389,6 @@ class Game:
         Displays main options to start, view highscores, etc.
         Listens for mouse clicks on these menu items.
 
-        Args:
-            self: The instance object.
-
         Returns:
             None.
         """
@@ -455,9 +437,6 @@ class Game:
 
         Explains controls and rules to the player.
 
-        Args:
-            self: The instance object.
-
         Returns:
             None.
         """
@@ -502,7 +481,7 @@ class Game:
         Fetches and renders highscores from JSON.
 
         Args:
-            self: The instance object.
+             The instance object.
 
         Returns:
             None.
@@ -556,9 +535,6 @@ class Game:
 
         Handles player input, updates entity coordinates, applies cheat codes,
         and checks win/loss conditions based on collisions and timers.
-
-        Args:
-            self: The instance object.
 
         Returns:
             None.
@@ -638,9 +614,6 @@ class Game:
 
         Pauses game logic until resumed.
 
-        Args:
-            self: The instance object.
-
         Returns:
             None.
         """
@@ -675,9 +648,6 @@ class Game:
 
         Prompts user for name to save score.
 
-        Args:
-            self: The instance object.
-
         Returns:
             None.
         """
@@ -696,7 +666,7 @@ class Game:
                 data = {}
             data = {
                 str(k): int(v) for k, v in data.items()
-                if isinstance(v, (int, float))
+                if isinstance(v, (int))
             }
         except Exception:
             data = {}
@@ -761,9 +731,6 @@ class Game:
 
         Prompts the user to enter their name to save their final score.
 
-        Args:
-            self: The instance object.
-
         Returns:
             None.
         """
@@ -782,7 +749,7 @@ class Game:
                 data = {}
             data = {
                 str(k): int(v) for k, v in data.items()
-                if isinstance(v, (int, float))
+                if isinstance(v, (int))
             }
         except Exception:
             data = {}
@@ -846,9 +813,6 @@ class Game:
         """Route to active menu or gameplay state.
 
         Routes to active menu or gameplay state.
-
-        Args:
-            self: The instance object.
 
         Returns:
             None.

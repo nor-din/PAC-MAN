@@ -9,9 +9,6 @@ class Images:
     def __init__(self) -> None:
         """Load background, menu, and UI images from the assets folder.
 
-        Args:
-            self: The instance object.
-
         Returns:
             None.
         """
